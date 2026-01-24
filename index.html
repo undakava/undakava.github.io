@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <title>赛博文豪</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #f5f5f5;
+      margin: 0;
+      padding: 20px;
+    }
+    h1 {
+      text-align: center;
+      margin-bottom: 6px;
+    }
+    .subtitle {
+      text-align: center;
+      color: #666;
+      margin-bottom: 20px;
+      font-size: 14px;
+    }
+    textarea {
+      width: 100%;
+      min-height: 180px;
+      padding: 12px;
+      font-size: 16px;
+      box-sizing: border-box;
+    }
+    button {
+      width: 100%;
+      margin-top: 12px;
+      padding: 12px;
+      font-size: 18px;
+      background: #222;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+    }
+    button:disabled {
+      background: #999;
+    }
+    #result {
+      margin-top: 20px;
+      padding: 16px;
+      background: #fff;
+      white-space: pre-wrap;
+      line-height: 1.7;
+      border-radius: 6px;
+    }
+  </style>
+</head>
+<body>
+
+<h1>赛博文豪</h1>
+<div class="subtitle">与大模型共创长篇网络小说</div>
+
+<textarea id="prompt" placeholder="请输入小说设定，例如：&#10;主角林夜重生到修真世界，发现自己每次死亡都会回档，但代价是逐渐失去情感……"></textarea>
+
+<button id="generateBtn">生成小说</button>
+
+<div id="result">生成的小说内容将显示在这里。</div>
+
+<script>
+  const btn = document.getElementById("generateBtn");
+  const result = document.getElementById("result");
+
+  btn.onclick = async () => {
+    const prompt = document.getElementById("prompt").value.trim();
+    if (!prompt) {
+      alert("请先输入小说设定");
+      return;
+    }
+
+    btn.disabled = true;
+    btn.innerText = "生成中，请稍候…";
+    result.innerText = "赛博文豪正在构思世界观与剧情，请耐心等待…";
+
+    // ⚠️ 这里之后会接 Cloudflare Worker + Gemini
+    setTimeout(() => {
+      result.innerText =
+        "【示例内容】\n\n" +
+        "夜雨敲打着残破的青石台阶，林夜站在山门前，指尖微微发冷。\n" +
+        "这是他第七次回到这一刻。\n\n" +
+        "上一世，他死于同门背叛；这一世，他决定隐藏锋芒，改写命运。\n\n" +
+        "而命运，似乎也在暗中注视着他的一举一动……\n\n" +
+        "（这里将由 Gemini 实时生成真正的小说内容）";
+      btn.disabled = false;
+      btn.innerText = "生成小说";
+    }, 1500);
+  };
+</script>
+
+</body>
+</html>
