@@ -62,12 +62,42 @@
   }
 
   function nextStage() {
-    stage = "setting";
-    document.getElementById("step").innerText = "当前阶段：世界观设定";
-    document.getElementById("idea-area").style.display = "none";
-    document.getElementById("result").innerHTML =
-      "<p>下一步：这里将是世界观和人物设定页面。</p>";
+  stage = "setting";
+  document.getElementById("step").innerText = "当前阶段：世界观设定";
+
+  document.getElementById("idea-area").innerHTML = `
+    <p>请选择你要锁定的故事脑洞（如果需要修改，可在下方重写）：</p>
+    <textarea id="storySetting" placeholder="请写出世界观 & 主要人物设定"></textarea>
+    <button onclick="generateSetting()">生成世界观</button>
+  `;
+  document.getElementById("result").innerHTML = "";
+}
+
+  function generateSetting() {
+  const settingInput = document.getElementById("storySetting").value.trim();
+  if (!settingInput) {
+    alert("请先写一些设定内容，或改成你自己的想法");
+    return;
   }
+
+  document.getElementById("result").style.display = "block";
+  document.getElementById("result").innerHTML =
+    "<p>世界观设定草稿：</p>" +
+    "<p>在未来的赛博都市，记忆存储成为最大财富，主角 X 是个能操控记忆但失去情感的神秘存在……</p>" +
+    "<button onclick='nextStage2()'>设定完成，进入大纲拆分</button>";
+}
+
+  function nextStage2() {
+  stage = "outline";
+  document.getElementById("step").innerText = "当前阶段：全书大纲";
+  document.getElementById("idea-area").innerHTML = `
+    <p>请输入本书整体故事大纲方向（一句话）：</p>
+    <textarea id="bookOutline"></textarea>
+    <button onclick="generateOutline()">生成大纲</button>
+  `;
+  document.getElementById("result").innerHTML = "";
+}
+  
 </script>
 
 </body>
