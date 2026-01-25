@@ -103,18 +103,43 @@ function drawSteps() {
   `;
 }
 
+/* ⭐ 优化后的计数控件 */
 function drawCounter(type, value) {
   return `
-    <button onclick="changeCount('${type}', -1)">－</button>
-    <input type="number" value="${value}" style="width:60px;text-align:center;" readonly>
-    <button onclick="changeCount('${type}', 1)">＋</button>
+    <span style="
+      display:inline-flex;
+      align-items:center;
+      border:1px solid #ccc;
+      border-radius:6px;
+      overflow:hidden;
+      margin-left:8px;
+    ">
+      <input 
+        type="text" 
+        value="${value}" 
+        readonly
+        style="
+          width:50px;
+          text-align:center;
+          border:none;
+          outline:none;
+        "
+      >
+      <div style="display:flex;flex-direction:column;">
+        <button 
+          onclick="changeCount('${type}', 1)"
+          style="border:none;padding:2px 6px;cursor:pointer;">＋</button>
+        <button 
+          onclick="changeCount('${type}', -1)"
+          style="border:none;padding:2px 6px;cursor:pointer;">－</button>
+      </div>
+    </span>
   `;
 }
 
 function drawPage() {
   const body = document.body;
 
-  // 普通阶段
   if (stage !== "volume" && stage !== "chapter") {
     body.innerHTML = `
       <h1>赛博文豪</h1>
@@ -127,7 +152,6 @@ function drawPage() {
     return;
   }
 
-  // 卷纲阶段
   if (stage === "volume") {
     body.innerHTML = `
       <h1>赛博文豪</h1>
@@ -143,28 +167,23 @@ function drawPage() {
         <div style="margin-bottom:20px;">
           <b>第 ${i+1} 卷</b><br>
           卷名：
-          <input 
-            style="width:60%;"
-            value="${v.title}"
-            oninput="updateVolume(${i}, 'title', this.value)"
-          ><br><br>
+          <input style="width:60%;" value="${v.title}"
+            oninput="updateVolume(${i}, 'title', this.value)">
+          <br><br>
           卷简介：
-          <textarea 
-            style="width:100%;height:80px;"
-            oninput="updateVolume(${i}, 'desc', this.value)"
-          >${v.desc}</textarea>
+          <textarea style="width:100%;height:80px;"
+            oninput="updateVolume(${i}, 'desc', this.value)">${v.desc}</textarea>
         </div>
       `).join("")}
     `;
     return;
   }
 
-  // 章节细纲阶段
   if (stage === "chapter") {
     body.innerHTML = `
       <h1>赛博文豪</h1>
       ${drawSteps()}
-      <p><b>当前阶段：章节细纲（当前卷）</b></p>
+      <p><b>当前阶段：章节细纲</b></p>
 
       本卷章节数：
       ${drawCounter("chapter", chapterCount)}
@@ -174,10 +193,8 @@ function drawPage() {
       ${data.chapters.map((c, i) => `
         <div style="margin-bottom:16px;">
           <b>第 ${i+1} 章</b><br>
-          <textarea 
-            style="width:100%;height:80px;"
-            oninput="updateChapter(${i}, this.value)"
-          >${c}</textarea>
+          <textarea style="width:100%;height:80px;"
+            oninput="updateChapter(${i}, this.value)">${c}</textarea>
         </div>
       `).join("")}
     `;
@@ -187,43 +204,27 @@ function drawPage() {
 function changeCount(type, delta) {
   if (type === "volume") {
     volumeCount = Math.max(1, volumeCount + delta);
-    data.volumes = [];
-    for (let i = 0; i < volumeCount; i++) {
-      data.volumes.push({ title: "", desc: "" });
-    }
+    data.volumes = Array.from({length: volumeCount}, () => ({title:"", desc:""}));
   }
-
   if (type === "chapter") {
     chapterCount = Math.max(1, chapterCount + delta);
-    data.chapters = [];
-    for (let i = 0; i < chapterCount; i++) {
-      data.chapters.push("");
-    }
+    data.chapters = Array.from({length: chapterCount}, () => "");
   }
-
   save();
   drawPage();
 }
 
-function updateVolume(index, field, value) {
-  data.volumes[index][field] = value;
-  save();
-}
-
-function updateChapter(index, value) {
-  data.chapters[index] = value;
-  save();
-}
+function updateVolume(i, f, v) { data.volumes[i][f] = v; save(); }
+function updateChapter(i, v) { data.chapters[i] = v; save(); }
 
 function generate() {
   alert(`这里将调用 AI 生成【${titleMap[stage]}】内容`);
 }
 
-function jump(target) {
+function jump(t) {
   const input = document.getElementById("input");
   if (input) data[stage] = input.value;
-
-  stage = target;
+  stage = t;
   save();
   drawPage();
 }
