@@ -63,7 +63,7 @@ let data = JSON.parse(localStorage.getItem("data")) || {
   idea: "",
   setting: "",
   outline: "",
-  volumes: []   // 每卷里放自己的 chapters
+  volumes: []
 };
 
 let titleMap = {
@@ -78,6 +78,24 @@ function save() {
   localStorage.setItem("data", JSON.stringify(data));
   localStorage.setItem("stage", stage);
   localStorage.setItem("currentVolume", currentVolume);
+}
+
+function pillButton(text, onclick) {
+  return `
+    <button onclick="${onclick}"
+      style="
+        border:1px solid #ccc;
+        background:#fff;
+        border-radius:16px;
+        padding:2px 10px;
+        font-size:12px;
+        cursor:pointer;
+        margin-left:6px;
+      "
+      onmouseover="this.style.background='#f5f5f5'"
+      onmouseout="this.style.background='#fff'"
+    >${text}</button>
+  `;
 }
 
 function drawSteps() {
@@ -103,7 +121,7 @@ function drawPage() {
     body.innerHTML = `
       <h1>赛博文豪</h1>
       ${drawSteps()}
-      <p><b>当前阶段：${titleMap[stage]}</b></p>
+      <p><b>${titleMap[stage]}</b></p>
       <textarea id="input" style="width:100%;height:240px;">${data[stage]||""}</textarea>
     `;
     return;
@@ -114,10 +132,12 @@ function drawPage() {
     body.innerHTML = `
       <h1>赛博文豪</h1>
       ${drawSteps()}
-      <p><b>当前阶段：卷纲</b></p>
 
-      <button onclick="addVolume()">＋ 增加一卷</button>
-      <button onclick="removeVolume()">－ 删除最后一卷</button>
+      <div style="display:flex;align-items:center;gap:6px;">
+        <b>卷纲</b>
+        ${pillButton("＋", "addVolume()")}
+        ${pillButton("－", "removeVolume()")}
+      </div>
 
       <hr>
 
@@ -137,7 +157,7 @@ function drawPage() {
     return;
   }
 
-  /* 章节细纲阶段（绑定卷） */
+  /* 章节细纲阶段 */
   if (stage === "chapter") {
     const v = data.volumes[currentVolume] || { chapters: [] };
     const chapters = v.chapters || [];
@@ -145,17 +165,17 @@ function drawPage() {
     body.innerHTML = `
       <h1>赛博文豪</h1>
       ${drawSteps()}
-      <p><b>当前阶段：章节细纲</b></p>
 
-      当前卷：
-      <select onchange="switchVolume(this.value)">
-        ${data.volumes.map((_, i) =>
-          `<option value="${i}" ${i===currentVolume?"selected":""}>第 ${i+1} 卷</option>`
-        ).join("")}
-      </select>
-
-      <button onclick="addChapter()">＋ 章</button>
-      <button onclick="removeChapter()">－ 章</button>
+      <div style="display:flex;align-items:center;gap:8px;">
+        当前卷：
+        <select onchange="switchVolume(this.value)">
+          ${data.volumes.map((_, i) =>
+            `<option value="${i}" ${i===currentVolume?"selected":""}>第 ${i+1} 卷</option>`
+          ).join("")}
+        </select>
+        ${pillButton("＋章", "addChapter()")}
+        ${pillButton("－章", "removeChapter()")}
+      </div>
 
       <hr>
 
@@ -184,7 +204,7 @@ function removeVolume() {
 }
 function updateVolume(i,f,v){ data.volumes[i][f]=v; save(); }
 
-/* 章节绑定卷 */
+/* 章节操作 */
 function switchVolume(i){
   currentVolume = Number(i);
   save(); drawPage();
@@ -195,7 +215,7 @@ function addChapter(){
 }
 function removeChapter(){
   const ch = data.volumes[currentVolume].chapters;
-  if (ch.length>1) ch.pop();
+  if (ch.length > 1) ch.pop();
   save(); drawPage();
 }
 function updateChapter(i,v){
