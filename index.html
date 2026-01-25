@@ -1,103 +1,108 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>赛博文豪</title>
   <style>
     body {
-      font-family: sans-serif;
-      margin: 0;
+      font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
+      background: #f5f6f8;
       padding: 20px;
     }
-    #step {
-      font-weight: bold;
-      margin-bottom: 10px;
-    }
-    textarea {
-      width: 100%;
-      height: 80px;
-    }
-    button {
-      margin-top: 10px;
-      padding: 8px 16px;
+    h1 {
+      text-align: center;
     }
     .box {
-      margin-top: 20px;
+      background: #fff;
+      padding: 16px;
+      border-radius: 8px;
+      margin-bottom: 16px;
+    }
+    textarea, button {
+      width: 100%;
+      font-size: 14px;
       padding: 10px;
-      border: 1px solid #ccc;
+      margin-top: 10px;
+    }
+    button {
+      background: #111;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+    }
+    #result {
+      white-space: pre-wrap;
+      background: #eee;
+      padding: 12px;
+      border-radius: 6px;
+      margin-top: 10px;
     }
   </style>
 </head>
+
 <body>
 
 <h1>赛博文豪</h1>
 
-<div id="step">当前阶段：脑洞</div>
+<div class="box">
+  <p id="step"><b>当前阶段：脑洞</b></p>
 
-<div id="idea-area">
-  <p>输入你的小说想法或关键词：</p>
-  <textarea id="ideaInput"></textarea>
-  <br>
-  <button onclick="generateIdea()">生成脑洞</button>
+  <div id="area"></div>
+
+  <button id="mainBtn" onclick="next()">生成脑洞</button>
 </div>
 
-<div id="result" class="box" style="display:none;"></div>
+<div id="result" style="display:none;"></div>
 
 <script>
   let stage = "idea";
 
-  function generateIdea() {
-    const input = document.getElementById("ideaInput").value;
+  // 初始化
+  render();
+
+  function render() {
+    if (stage === "idea") {
+      document.getElementById("area").innerHTML = `
+        <p>请输入你想写的小说方向：</p>
+        <textarea id="input" placeholder="例如：赛博朋克 + 修真 + 商业博弈"></textarea>
+      `;
+      document.getElementById("mainBtn").innerText = "生成脑洞";
+    }
+
+    if (stage === "setting") {
+      document.getElementById("step").innerHTML = "<b>当前阶段：世界观设定</b>";
+      document.getElementById("area").innerHTML = `
+        <p>请确认或修改世界观与主角设定：</p>
+        <textarea id="input" placeholder="世界观、主角身份、核心冲突"></textarea>
+      `;
+      document.getElementById("mainBtn").innerText = "生成世界观";
+    }
+  }
+
+  function next() {
+    const input = document.getElementById("input").value.trim();
     if (!input) {
-      alert("先写点东西");
+      alert("请先输入内容");
       return;
     }
 
-    // 假数据，后面再接 Gemini
     document.getElementById("result").style.display = "block";
-    document.getElementById("result").innerHTML =
-      "<p>脑洞 1：一个普通人突然获得写作即现实的能力。</p>" +
-      "<p>脑洞 2：AI 与人类共同创作，决定世界走向。</p>" +
-      "<button onclick='nextStage()'>选用这个脑洞，进入下一步</button>";
+
+    if (stage === "idea") {
+      document.getElementById("result").innerText =
+        "【脑洞生成结果】\n\n" +
+        "这是一个融合多重题材、适合长篇连载的故事设想。\n\n" +
+        "（此处未来接入 Gemini）";
+      stage = "setting";
+      render();
+    } 
+    else if (stage === "setting") {
+      document.getElementById("result").innerText =
+        "【世界观设定完成】\n\n" +
+        "世界规则、主角定位与核心冲突已确定。\n\n" +
+        "下一步：进入全书大纲阶段";
+    }
   }
-
-  function nextStage() {
-  stage = "setting";
-  document.getElementById("step").innerText = "当前阶段：世界观设定";
-
-  document.getElementById("idea-area").innerHTML = `
-    <p>请选择你要锁定的故事脑洞（如果需要修改，可在下方重写）：</p>
-    <textarea id="storySetting" placeholder="请写出世界观 & 主要人物设定"></textarea>
-    <button onclick="generateSetting()">生成世界观</button>
-  `;
-  document.getElementById("result").innerHTML = "";
-}
-
-  function generateSetting() {
-  const settingInput = document.getElementById("storySetting").value.trim();
-  if (!settingInput) {
-    alert("请先写一些设定内容，或改成你自己的想法");
-    return;
-  }
-
-  document.getElementById("result").style.display = "block";
-  document.getElementById("result").innerHTML =
-    "<p>世界观设定草稿：</p>" +
-    "<p>在未来的赛博都市，记忆存储成为最大财富，主角 X 是个能操控记忆但失去情感的神秘存在……</p>" +
-    "<button onclick='nextStage2()'>设定完成，进入大纲拆分</button>";
-}
-
-  function nextStage2() {
-  stage = "outline";
-  document.getElementById("step").innerText = "当前阶段：全书大纲";
-  document.getElementById("idea-area").innerHTML = `
-    <p>请输入本书整体故事大纲方向（一句话）：</p>
-    <textarea id="bookOutline"></textarea>
-    <button onclick="generateOutline()">生成大纲</button>
-  `;
-  document.getElementById("result").innerHTML = "";
-}
-  
 </script>
 
 </body>
