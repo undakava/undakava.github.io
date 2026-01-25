@@ -103,35 +103,30 @@ function drawSteps() {
   `;
 }
 
-/* ⭐ 优化后的计数控件 */
-function drawCounter(type, value) {
+/* 卷数：只能点按钮 */
+function drawVolumeCounter(value) {
   return `
-    <span style="
-      display:inline-flex;
-      align-items:center;
-      border:1px solid #ccc;
-      border-radius:6px;
-      overflow:hidden;
-      margin-left:8px;
-    ">
-      <input 
-        type="text" 
-        value="${value}" 
-        readonly
-        style="
-          width:50px;
-          text-align:center;
-          border:none;
-          outline:none;
-        "
-      >
+    <span style="display:inline-flex;align-items:center;border:1px solid #ccc;border-radius:6px;overflow:hidden;margin-left:8px;">
+      <input type="text" value="${value}" readonly
+        style="width:50px;text-align:center;border:none;">
       <div style="display:flex;flex-direction:column;">
-        <button 
-          onclick="changeCount('${type}', 1)"
-          style="border:none;padding:2px 6px;cursor:pointer;">＋</button>
-        <button 
-          onclick="changeCount('${type}', -1)"
-          style="border:none;padding:2px 6px;cursor:pointer;">－</button>
+        <button onclick="changeVolume(1)" style="border:none;padding:2px 6px;">＋</button>
+        <button onclick="changeVolume(-1)" style="border:none;padding:2px 6px;">－</button>
+      </div>
+    </span>
+  `;
+}
+
+/* 章节数：可手输 + 按钮 */
+function drawChapterCounter(value) {
+  return `
+    <span style="display:inline-flex;align-items:center;border:1px solid #ccc;border-radius:6px;overflow:hidden;margin-left:8px;">
+      <input type="number" min="1" value="${value}"
+        style="width:60px;text-align:center;border:none;"
+        onchange="setChapterCount(this.value)">
+      <div style="display:flex;flex-direction:column;">
+        <button onclick="changeChapter(1)" style="border:none;padding:2px 6px;">＋</button>
+        <button onclick="changeChapter(-1)" style="border:none;padding:2px 6px;">－</button>
       </div>
     </span>
   `;
@@ -159,7 +154,7 @@ function drawPage() {
       <p><b>当前阶段：卷纲</b></p>
 
       本书卷数：
-      ${drawCounter("volume", volumeCount)}
+      ${drawVolumeCounter(volumeCount)}
 
       <hr>
 
@@ -186,7 +181,7 @@ function drawPage() {
       <p><b>当前阶段：章节细纲</b></p>
 
       本卷章节数：
-      ${drawCounter("chapter", chapterCount)}
+      ${drawChapterCounter(chapterCount)}
 
       <hr>
 
@@ -201,15 +196,22 @@ function drawPage() {
   }
 }
 
-function changeCount(type, delta) {
-  if (type === "volume") {
-    volumeCount = Math.max(1, volumeCount + delta);
-    data.volumes = Array.from({length: volumeCount}, () => ({title:"", desc:""}));
-  }
-  if (type === "chapter") {
-    chapterCount = Math.max(1, chapterCount + delta);
-    data.chapters = Array.from({length: chapterCount}, () => "");
-  }
+/* 卷数逻辑 */
+function changeVolume(delta) {
+  volumeCount = Math.max(1, volumeCount + delta);
+  data.volumes = Array.from({length: volumeCount}, () => ({title:"", desc:""}));
+  save();
+  drawPage();
+}
+
+/* 章节数逻辑 */
+function changeChapter(delta) {
+  setChapterCount(chapterCount + delta);
+}
+
+function setChapterCount(val) {
+  chapterCount = Math.max(1, Number(val) || 1);
+  data.chapters = Array.from({length: chapterCount}, () => "");
   save();
   drawPage();
 }
