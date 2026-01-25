@@ -44,19 +44,23 @@ function drawSteps() {
   `;  
 }  
   
-function drawPage() {  
-  const body = document.body;  
-  
-  /* 普通阶段 */  
-  if (stage !== "volume" && stage !== "chapter") {  
-    body.innerHTML = `  
-      <h1>赛博文豪</h1>  
-      ${drawSteps()}  
-      <p><b>当前阶段：${titleMap[stage]}</b></p>  
-      <textarea id="input" style="width:100%;height:240px;">${data[stage]||""}</textarea>  `;  
-return;
+function drawPage() {
+  const body = document.body;
 
-}
+  /* 普通阶段 */
+  if (stage !== "volume" && stage !== "chapter") {
+    body.innerHTML = `
+      <h1>赛博文豪</h1>
+      ${drawSteps()}
+      <p><b>当前阶段：${titleMap[stage]}</b></p>
+
+      <textarea id="input" style="width:100%;height:240px;">${data[stage]||""}</textarea>
+
+      <br><br>
+      <button onclick="generate()">生成${titleMap[stage]}</button>
+    `;
+    return;
+  }
 
 /* 卷纲阶段 */
 if (stage === "volume") {
@@ -158,6 +162,21 @@ function jump(t){
 const input=document.getElementById("input");
 if(input) data[stage]=input.value;
 stage=t; save(); drawPage();
+}
+
+function generate() {
+  const input = document.getElementById("input");
+  if (!input) return;
+
+  const samples = {
+    idea: "这是一个关于命运、科技与人性的脑洞设想……",
+    setting: "这是一个高科技与旧秩序并存的世界，阶级分明……",
+    outline: "全书围绕主角的崛起与世界格局的变化展开……"
+  };
+
+  input.value = samples[stage] || "";
+  data[stage] = input.value;
+  save();
 }
 
 drawPage();
