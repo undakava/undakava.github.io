@@ -57,15 +57,20 @@ button {
 <script>
 alert("赛博文豪 JS 已加载");
 
-let stage = "idea";
+let stage = localStorage.getItem("stage") || "idea";
 
-let data = {
+let data = JSON.parse(localStorage.getItem("data")) || {
   idea: "",
   setting: "",
   outline: "",
   volume: "",
   chapter: ""
 };
+
+function save() {
+  localStorage.setItem("data", JSON.stringify(data));
+  localStorage.setItem("stage", stage);
+}
 
 function drawPage() {
   const body = document.body;
@@ -98,11 +103,13 @@ function next() {
   else if (stage === "outline") stage = "volume";
   else if (stage === "volume") stage = "chapter";
   else if (stage === "chapter") {
-    alert("所有阶段内容已保存，下一步接 AI 生成正文");
+    save();
+    alert("所有阶段内容已保存，下一步接 AI");
     console.log(data);
     return;
   }
 
+  save();
   drawPage();
 }
 
