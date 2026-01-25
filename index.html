@@ -59,62 +59,43 @@ alert("赛博文豪 JS 已加载");
 
 let stage = "idea";
 
-render();
-
-function render() {
-  const title = document.getElementById("stageTitle");
-  const area = document.getElementById("mainArea");
-  const btn = document.getElementById("actionBtn");
-
-  document.getElementById("result").style.display = "none";
+function drawPage() {
+  const body = document.body;
 
   if (stage === "idea") {
-    title.innerText = "当前阶段：脑洞生成";
-    area.innerHTML = `
-      <p>请输入你想写的小说方向：</p>
-      <textarea id="input" placeholder="例如：赛博朋克 + 修真 + 商业博弈"></textarea>
+    body.innerHTML = `
+      <h1>赛博文豪</h1>
+      <p><b>当前阶段：脑洞</b></p>
+      <textarea id="input" style="width:100%;height:100px;"></textarea>
+      <br><br>
+      <button onclick="next()">生成脑洞</button>
     `;
-    btn.innerText = "生成脑洞";
-    btn.onclick = handleIdea;
   }
 
   if (stage === "setting") {
-    title.innerText = "当前阶段：世界观设定";
-    area.innerHTML = `
-      <p>请确认或修改世界观、主角与核心冲突：</p>
-      <textarea id="input" placeholder="世界规则、主角身份、主要矛盾"></textarea>
+    body.innerHTML = `
+      <h1>赛博文豪</h1>
+      <p><b>当前阶段：世界观设定</b></p>
+      <textarea id="input" style="width:100%;height:100px;"></textarea>
+      <br><br>
+      <button onclick="next()">生成世界观</button>
     `;
-    btn.innerText = "生成世界观";
-    btn.onclick = handleSetting;
   }
 }
 
-function handleIdea() {
-  const input = document.getElementById("input").value.trim();
-  if (!input) {
-    alert("请先输入内容");
-    return;
+function next() {
+  alert("按钮点到了");
+
+  if (stage === "idea") {
+    stage = "setting";
+    alert("阶段已切换为：" + stage);
+    drawPage();
+  } else {
+    alert("世界观阶段完成（下一步以后再做）");
   }
-  document.getElementById("result").style.display = "block";
-  document.getElementById("result").innerText =
-    "【脑洞生成结果】\n\n" +
-    "这是一个适合长篇连载、具备扩展潜力的故事核心。\n\n" +
-    "点击下方按钮，进入【世界观设定】阶段。";
-  stage = "setting";
 }
 
-function handleSetting() {
-  const input = document.getElementById("input").value.trim();
-  if (!input) {
-    alert("请先输入内容");
-    return;
-  }
-  document.getElementById("result").style.display = "block";
-  document.getElementById("result").innerText =
-    "【世界观设定完成】\n\n" +
-    "世界规则、人物定位已锁定。\n\n" +
-    "下一步：进入【全书大纲】阶段。";
-}
+drawPage();
 </script>
 
 </body>
