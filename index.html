@@ -62,12 +62,12 @@ let data = JSON.parse(localStorage.getItem("data")) || {
   idea: "",
   setting: "",
   outline: "",
-  volumes: [],   // ← 多卷
-  chapters: []   // ← 当前卷的章节
+  volumes: [],
+  chapters: []
 };
 
-let volumeCount = localStorage.getItem("volumeCount") || 0;
-let chapterCount = localStorage.getItem("chapterCount") || 0;
+let volumeCount = Number(localStorage.getItem("volumeCount")) || 1;
+let chapterCount = Number(localStorage.getItem("chapterCount")) || 1;
 
 let titleMap = {
   idea: "脑洞",
@@ -103,10 +103,18 @@ function drawSteps() {
   `;
 }
 
+function drawCounter(type, value) {
+  return `
+    <button onclick="changeCount('${type}', -1)">－</button>
+    <input type="number" value="${value}" style="width:60px;text-align:center;" readonly>
+    <button onclick="changeCount('${type}', 1)">＋</button>
+  `;
+}
+
 function drawPage() {
   const body = document.body;
 
-  // 通用阶段
+  // 普通阶段
   if (stage !== "volume" && stage !== "chapter") {
     body.innerHTML = `
       <h1>赛博文豪</h1>
@@ -127,8 +135,7 @@ function drawPage() {
       <p><b>当前阶段：卷纲</b></p>
 
       本书卷数：
-      <input type="number" min="1" value="${volumeCount}">
-      <button onclick="setVolumeCount()">生成卷</button>
+      ${drawCounter("volume", volumeCount)}
 
       <hr>
 
@@ -152,16 +159,15 @@ function drawPage() {
     return;
   }
 
-  // 章节细纲阶段（仍然单卷）
+  // 章节细纲阶段
   if (stage === "chapter") {
     body.innerHTML = `
       <h1>赛博文豪</h1>
       ${drawSteps()}
-      <p><b>当前阶段：章节细纲（第 1 卷）</b></p>
+      <p><b>当前阶段：章节细纲（当前卷）</b></p>
 
       本卷章节数：
-      <input type="number" min="1" value="${chapterCount}">
-      <button onclick="setChapterCount()">生成章节</button>
+      ${drawCounter("chapter", chapterCount)}
 
       <hr>
 
@@ -178,13 +184,21 @@ function drawPage() {
   }
 }
 
-function setVolumeCount() {
-  const input = document.querySelector("input[type=number]");
-  volumeCount = Number(input.value);
+function changeCount(type, delta) {
+  if (type === "volume") {
+    volumeCount = Math.max(1, volumeCount + delta);
+    data.volumes = [];
+    for (let i = 0; i < volumeCount; i++) {
+      data.volumes.push({ title: "", desc: "" });
+    }
+  }
 
-  data.volumes = [];
-  for (let i = 0; i < volumeCount; i++) {
-    data.volumes.push({ title: "", desc: "" });
+  if (type === "chapter") {
+    chapterCount = Math.max(1, chapterCount + delta);
+    data.chapters = [];
+    for (let i = 0; i < chapterCount; i++) {
+      data.chapters.push("");
+    }
   }
 
   save();
@@ -194,19 +208,6 @@ function setVolumeCount() {
 function updateVolume(index, field, value) {
   data.volumes[index][field] = value;
   save();
-}
-
-function setChapterCount() {
-  const input = document.querySelector("input[type=number]");
-  chapterCount = Number(input.value);
-
-  data.chapters = [];
-  for (let i = 0; i < chapterCount; i++) {
-    data.chapters.push("");
-  }
-
-  save();
-  drawPage();
 }
 
 function updateChapter(index, value) {
