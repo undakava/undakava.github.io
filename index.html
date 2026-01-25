@@ -1,43 +1,45 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-  <meta charset="UTF-8" />
-  <title>赛博文豪</title>
-  <style>
-    body {
-      font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
-      background: #f5f6f8;
-      padding: 20px;
-    }
-    h1 {
-      text-align: center;
-    }
-    .box {
-      background: #fff;
-      padding: 16px;
-      border-radius: 8px;
-      margin-bottom: 16px;
-    }
-    textarea, button {
-      width: 100%;
-      font-size: 14px;
-      padding: 10px;
-      margin-top: 10px;
-    }
-    button {
-      background: #111;
-      color: #fff;
-      border: none;
-      border-radius: 6px;
-    }
-    #result {
-      white-space: pre-wrap;
-      background: #eee;
-      padding: 12px;
-      border-radius: 6px;
-      margin-top: 10px;
-    }
-  </style>
+<meta charset="UTF-8">
+<title>赛博文豪</title>
+<style>
+body {
+  font-family: "PingFang SC","Microsoft YaHei",sans-serif;
+  background:#f5f6f8;
+  padding:20px;
+}
+h1 { text-align:center; }
+.stage {
+  font-size:18px;
+  font-weight:bold;
+  margin-bottom:12px;
+}
+.box {
+  background:#fff;
+  padding:16px;
+  border-radius:8px;
+  margin-bottom:16px;
+}
+textarea, button {
+  width:100%;
+  font-size:14px;
+  padding:10px;
+  margin-top:10px;
+}
+button {
+  background:#111;
+  color:#fff;
+  border:none;
+  border-radius:6px;
+}
+#result {
+  white-space:pre-wrap;
+  background:#eee;
+  padding:12px;
+  border-radius:6px;
+}
+</style>
 </head>
 
 <body>
@@ -45,64 +47,72 @@
 <h1>赛博文豪</h1>
 
 <div class="box">
-  <p id="step"><b>当前阶段：脑洞</b></p>
-
-  <div id="area"></div>
-
-  <button id="mainBtn" onclick="next()">生成脑洞</button>
+  <div id="stageTitle" class="stage"></div>
+  <div id="mainArea"></div>
+  <button id="actionBtn"></button>
 </div>
 
 <div id="result" style="display:none;"></div>
 
 <script>
-  let stage = "idea";
+let stage = "idea";
 
-  // 初始化
-  render();
+render();
 
-  function render() {
-    if (stage === "idea") {
-      document.getElementById("area").innerHTML = `
-        <p>请输入你想写的小说方向：</p>
-        <textarea id="input" placeholder="例如：赛博朋克 + 修真 + 商业博弈"></textarea>
-      `;
-      document.getElementById("mainBtn").innerText = "生成脑洞";
-    }
+function render() {
+  const title = document.getElementById("stageTitle");
+  const area = document.getElementById("mainArea");
+  const btn = document.getElementById("actionBtn");
 
-    if (stage === "setting") {
-      document.getElementById("step").innerHTML = "<b>当前阶段：世界观设定</b>";
-      document.getElementById("area").innerHTML = `
-        <p>请确认或修改世界观与主角设定：</p>
-        <textarea id="input" placeholder="世界观、主角身份、核心冲突"></textarea>
-      `;
-      document.getElementById("mainBtn").innerText = "生成世界观";
-    }
+  document.getElementById("result").style.display = "none";
+
+  if (stage === "idea") {
+    title.innerText = "当前阶段：脑洞生成";
+    area.innerHTML = `
+      <p>请输入你想写的小说方向：</p>
+      <textarea id="input" placeholder="例如：赛博朋克 + 修真 + 商业博弈"></textarea>
+    `;
+    btn.innerText = "生成脑洞";
+    btn.onclick = handleIdea;
   }
 
-  function next() {
-    const input = document.getElementById("input").value.trim();
-    if (!input) {
-      alert("请先输入内容");
-      return;
-    }
-
-    document.getElementById("result").style.display = "block";
-
-    if (stage === "idea") {
-      document.getElementById("result").innerText =
-        "【脑洞生成结果】\n\n" +
-        "这是一个融合多重题材、适合长篇连载的故事设想。\n\n" +
-        "（此处未来接入 Gemini）";
-      stage = "setting";
-      render();
-    } 
-    else if (stage === "setting") {
-      document.getElementById("result").innerText =
-        "【世界观设定完成】\n\n" +
-        "世界规则、主角定位与核心冲突已确定。\n\n" +
-        "下一步：进入全书大纲阶段";
-    }
+  if (stage === "setting") {
+    title.innerText = "当前阶段：世界观设定";
+    area.innerHTML = `
+      <p>请确认或修改世界观、主角与核心冲突：</p>
+      <textarea id="input" placeholder="世界规则、主角身份、主要矛盾"></textarea>
+    `;
+    btn.innerText = "生成世界观";
+    btn.onclick = handleSetting;
   }
+}
+
+function handleIdea() {
+  const input = document.getElementById("input").value.trim();
+  if (!input) {
+    alert("请先输入内容");
+    return;
+  }
+  document.getElementById("result").style.display = "block";
+  document.getElementById("result").innerText =
+    "【脑洞生成结果】\n\n" +
+    "这是一个适合长篇连载、具备扩展潜力的故事核心。\n\n" +
+    "点击下方按钮，进入【世界观设定】阶段。";
+  stage = "setting";
+}
+
+function handleSetting() {
+  const input = document.getElementById("input").value.trim();
+  if (!input) {
+    alert("请先输入内容");
+    return;
+  }
+  document.getElementById("result").style.display = "block";
+  document.getElementById("result").innerText =
+    "【世界观设定完成】\n\n" +
+    "世界规则、人物定位已锁定。\n\n" +
+    "下一步：进入【全书大纲】阶段。";
+}
 </script>
 
 </body>
