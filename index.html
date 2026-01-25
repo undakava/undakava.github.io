@@ -66,9 +66,9 @@ function drawPage() {
     body.innerHTML = `
       <h1>赛博文豪</h1>
       <p><b>当前阶段：脑洞</b></p>
-      <textarea id="input" style="width:100%;height:100px;"></textarea>
+      <textarea style="width:100%;height:100px;"></textarea>
       <br><br>
-      <button onclick="next()">生成脑洞</button>
+      <button onclick="next()">进入世界观</button>
     `;
   }
 
@@ -76,9 +76,9 @@ function drawPage() {
     body.innerHTML = `
       <h1>赛博文豪</h1>
       <p><b>当前阶段：世界观设定</b></p>
-      <textarea id="input" style="width:100%;height:100px;"></textarea>
+      <textarea style="width:100%;height:100px;"></textarea>
       <br><br>
-      <button onclick="next()">生成世界观</button>
+      <button onclick="next()">进入全书大纲</button>
     `;
   }
 
@@ -86,9 +86,29 @@ function drawPage() {
     body.innerHTML = `
       <h1>赛博文豪</h1>
       <p><b>当前阶段：全书大纲</b></p>
-      <textarea id="input" style="width:100%;height:120px;"></textarea>
+      <textarea style="width:100%;height:120px;"></textarea>
       <br><br>
-      <button onclick="next()">生成大纲</button>
+      <button onclick="next()">进入卷纲</button>
+    `;
+  }
+
+  if (stage === "volume") {
+    body.innerHTML = `
+      <h1>赛博文豪</h1>
+      <p><b>当前阶段：卷纲</b></p>
+      <textarea style="width:100%;height:140px;"></textarea>
+      <br><br>
+      <button onclick="next()">进入章节细纲</button>
+    `;
+  }
+
+  if (stage === "chapter") {
+    body.innerHTML = `
+      <h1>赛博文豪</h1>
+      <p><b>当前阶段：章节细纲</b></p>
+      <textarea style="width:100%;height:140px;"></textarea>
+      <br><br>
+      <button onclick="next()">生成正文</button>
     `;
   }
 }
@@ -107,7 +127,19 @@ function next() {
   }
 
   if (stage === "outline") {
-    alert("全书大纲阶段完成（下一步是卷纲）");
+    stage = "volume";
+    drawPage();
+    return;
+  }
+
+  if (stage === "volume") {
+    stage = "chapter";
+    drawPage();
+    return;
+  }
+
+  if (stage === "chapter") {
+    alert("正文生成阶段（下一步接 AI）");
   }
 }
 
