@@ -82,16 +82,22 @@ function save() {
 
 function drawSteps() {
   return `
-    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;">
+    <div style="
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      margin-bottom:14px;
+    ">
       ${stages.map(s => `
         <div 
           onclick="jump('${s}')"
           style="
-            padding:6px 12px;
-            border-radius:16px;
+            padding:6px 14px;
+            border-radius:20px;
             cursor:pointer;
             font-size:14px;
-            background:${s===stage ? '#222' : '#eee'};
+            user-select:none;
+            background:${s===stage ? '#111' : '#eaeaea'};
             color:${s===stage ? '#fff' : '#333'};
           ">
           ${titleMap[s]}
@@ -111,18 +117,19 @@ function drawPage() {
 
     <p><b>当前阶段：${titleMap[stage]}</b></p>
 
-    <textarea id="input" style="
-      width:100%;
-      height:220px;
-      font-size:14px;
-      line-height:1.6;
-    ">${data[stage]}</textarea>
+    <textarea 
+      id="input" 
+      style="
+        width:100%;
+        height:240px;
+        font-size:14px;
+        line-height:1.6;
+      "
+    >${data[stage]}</textarea>
 
     <br><br>
 
     <button onclick="generate()">生成本阶段内容</button>
-    <button onclick="prev()">上一步</button>
-    <button onclick="next()">下一步</button>
   `;
 }
 
@@ -135,32 +142,6 @@ function jump(target) {
   if (input) data[stage] = input.value;
 
   stage = target;
-  save();
-  drawPage();
-}
-
-function next() {
-  const input = document.getElementById("input");
-  data[stage] = input.value;
-
-  let index = stages.indexOf(stage);
-  if (index < stages.length - 1) {
-    stage = stages[index + 1];
-  }
-
-  save();
-  drawPage();
-}
-
-function prev() {
-  const input = document.getElementById("input");
-  data[stage] = input.value;
-
-  let index = stages.indexOf(stage);
-  if (index > 0) {
-    stage = stages[index - 1];
-  }
-
   save();
   drawPage();
 }
