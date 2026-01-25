@@ -1,186 +1,154 @@
-<!DOCTYPE html>  <html lang="zh-CN">  
-<head>  
-  <meta charset="UTF-8">  
-  <title>赛博文豪</title>  
-</head>  
-<body>  <h1>赛博文豪</h1>  <div id="app"></div>  <script>  
-let stages = ["idea", "setting", "outline", "volume", "chapter"];  
-let stage = localStorage.getItem("stage") || "idea";  
-let currentVolume = Number(localStorage.getItem("currentVolume")) || 0;  
-  
-let data = JSON.parse(localStorage.getItem("data")) || {  
-  idea: "",  
-  setting: "",  
-  outline: "",  
-  volumes: []   // 每卷里放自己的 chapters  
-};  
-  
-let titleMap = {  
-  idea: "脑洞",  
-  setting: "世界观",  
-  outline: "全书大纲",  
-  volume: "卷纲",  
-  chapter: "章节细纲"  
-};  
-  
-function save() {  
-  localStorage.setItem("data", JSON.stringify(data));  
-  localStorage.setItem("stage", stage);  
-  localStorage.setItem("currentVolume", currentVolume);  
-}  
-  
-function drawSteps() {  
-  return `  
-    <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px;">  
-      ${stages.map(s => `  
-        <div onclick="jump('${s}')"  
-          style="padding:6px 14px;border-radius:20px;cursor:pointer;  
-          background:${s===stage?'#111':'#eee'};  
-          color:${s===stage?'#fff':'#333'};">  
-          ${titleMap[s]}  
-        </div>  
-      `).join("")}  
-    </div>  
-  `;  
-}  
-  
-function drawPage() {
-  const body = document.body;
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <title>赛博文豪</title>
+  <style>
+    body { font-family: sans-serif; padding: 20px; }
+    textarea { width: 100%; box-sizing: border-box; }
+    input { box-sizing: border-box; }
+    button { margin: 4px 4px 4px 0; }
+    .step { display:inline-block;padding:6px 14px;border-radius:20px;cursor:pointer;margin-right:8px;}
+    .active { background:#111;color:#fff;}
+    .inactive { background:#eee;color:#333;}
+    .card { border:1px solid #ddd;padding:12px;margin-bottom:14px;border-radius:6px;}
+  </style>
+</head>
 
-  /* 普通阶段 */
-  if (stage !== "volume" && stage !== "chapter") {
-    body.innerHTML = `
-      <h1>赛博文豪</h1>
-      ${drawSteps()}
-      <p><b>当前阶段：${titleMap[stage]}</b></p>
+<body>
+<h1>赛博文豪</h1>
+<div id="app"></div>
 
-      <textarea id="input" style="width:100%;height:240px;">${data[stage]||""}</textarea>
+<script>
+/* ===== 基础状态 ===== */
+const stages = ["idea","setting","outline","volume"];
+const titleMap = {
+  idea:"脑洞",
+  setting:"世界观",
+  outline:"全书大纲",
+  volume:"卷纲"
+};
 
-      <br><br>
-      <button onclick="generate()">生成${titleMap[stage]}</button>
+let stage = localStorage.getItem("stage") || "idea";
+
+let data = JSON.parse(localStorage.getItem("data")) || {
+  idea:"",
+  setting:"",
+  outline:"",
+  volumes:[
+    { title:"", desc:"", chapterCount:5, chaptersOutline:[] }
+  ]
+};
+
+function save(){
+  localStorage.setItem("stage",stage);
+  localStorage.setItem("data",JSON.stringify(data));
+}
+
+/* ===== 页面绘制 ===== */
+function draw(){
+  const app = document.getElementById("app");
+
+  app.innerHTML = `
+    ${drawSteps()}
+    <h3>当前阶段：${titleMap[stage]}</h3>
+    ${drawStage()}
+  `;
+}
+
+function drawSteps(){
+  return `
+    <div style="margin-bottom:16px;">
+      ${stages.map(s=>`
+        <span class="step ${s===stage?'active':'inactive'}"
+          onclick="jumpStage('${s}')">${titleMap[s]}</span>
+      `).join("")}
+    </div>
+  `;
+}
+
+function drawStage(){
+  if(stage!=="volume"){
+    return `
+      <textarea rows="10"
+        oninput="data['${stage}']=this.value;save();">
+${data[stage]}</textarea>
+      <br>
+      <button onclick="fakeGenerate()">生成${titleMap[stage]}</button>
     `;
-    return;
   }
 
-/* 卷纲阶段 */
-if (stage === "volume") {
-body.innerHTML = `
-<h1>赛博文豪</h1>
-${drawSteps()}
-<p><b>当前阶段：卷纲</b></p>
+  return `
+    <button onclick="addVolume()">＋ 增加一卷</button>
+    <button onclick="removeVolume()">－ 删除最后一卷</button>
+    <hr>
+    ${data.volumes.map((v,i)=>`
+      <div class="card">
+        <b>第 ${i+1} 卷</b><br><br>
 
-<button onclick="addVolume()">＋ 增加一卷</button>  
-  <button onclick="removeVolume()">－ 删除最后一卷</button>  
+        卷名：<br>
+        <input value="${v.title}" 
+          oninput="updateVolume(${i},'title',this.value)" style="width:100%;"><br><br>
 
-  <hr>  
+        卷简介：<br>
+        <textarea rows="3"
+          oninput="updateVolume(${i},'desc',this.value)">${v.desc}</textarea><br><br>
 
-  ${data.volumes.map((v, i) => `  
-    <div style="margin-bottom:20px;">  
-      <b>第 ${i+1} 卷</b><br>  
-      卷名：  
-      <input style="width:60%;" value="${v.title||""}"  
-        oninput="updateVolume(${i}, 'title', this.value)">  
-      <br><br>  
-      卷简介：  
-      <textarea style="width:100%;height:80px;"  
-        oninput="updateVolume(${i}, 'desc', this.value)">${v.desc||""}</textarea>  
-    </div>  
-  `).join("")}  
-`;  
-return;
+        本卷章节数：
+        <input type="number" min="1" value="${v.chapterCount}"
+          oninput="updateVolume(${i},'chapterCount',Number(this.value))"
+          style="width:80px;"><br><br>
 
+        <button onclick="generateChapterOutline(${i})">
+          生成本卷章节概述
+        </button>
+      </div>
+    `).join("")}
+  `;
 }
 
-/* 章节细纲阶段（绑定卷） */
-if (stage === "chapter") {
-const v = data.volumes[currentVolume] || { chapters: [] };
-const chapters = v.chapters || [];
+/* ===== 行为 ===== */
+function jumpStage(s){ stage=s; save(); draw(); }
 
-body.innerHTML = `  
-  <h1>赛博文豪</h1>  
-  ${drawSteps()}  
-  <p><b>当前阶段：章节细纲</b></p>  
-
-  当前卷：  
-  <select onchange="switchVolume(this.value)">  
-    ${data.volumes.map((_, i) =>  
-      `<option value="${i}" ${i===currentVolume?"selected":""}>第 ${i+1} 卷</option>`  
-    ).join("")}  
-  </select>  
-
-  <button onclick="addChapter()">＋ 章</button>  
-  <button onclick="removeChapter()">－ 章</button>  
-
-  <hr>  
-
-  ${chapters.map((c, i) => `  
-    <div style="margin-bottom:16px;">  
-      <b>第 ${i+1} 章</b><br>  
-      <textarea style="width:100%;height:80px;"  
-        oninput="updateChapter(${i}, this.value)">${c}</textarea>  
-    </div>  
-  `).join("")}  
-`;
-
-}
+function fakeGenerate(){
+  data[stage] = `【${titleMap[stage]}生成结果】\n（此处未来接入 Gemini）`;
+  save(); draw();
 }
 
-/* 卷操作 */
-function addVolume() {
-data.volumes.push({ title:"", desc:"", chapters:[] });
-save(); drawPage();
-}
-function removeVolume() {
-if (data.volumes.length > 1) {
-data.volumes.pop();
-currentVolume = Math.max(0, currentVolume - 1);
-}
-save(); drawPage();
-}
-function updateVolume(i,f,v){ data.volumes[i][f]=v; save(); }
-
-/* 章节绑定卷 */
-function switchVolume(i){
-currentVolume = Number(i);
-save(); drawPage();
-}
-function addChapter(){
-data.volumes[currentVolume].chapters.push("");
-save(); drawPage();
-}
-function removeChapter(){
-const ch = data.volumes[currentVolume].chapters;
-if (ch.length>1) ch.pop();
-save(); drawPage();
-}
-function updateChapter(i,v){
-data.volumes[currentVolume].chapters[i]=v;
-save();
+function addVolume(){
+  data.volumes.push({
+    title:"",
+    desc:"",
+    chapterCount:5,
+    chaptersOutline:[]
+  });
+  save(); draw();
 }
 
-function jump(t){
-const input=document.getElementById("input");
-if(input) data[stage]=input.value;
-stage=t; save(); drawPage();
+function removeVolume(){
+  if(data.volumes.length>1){
+    data.volumes.pop();
+    save(); draw();
+  }
 }
 
-function generate() {
-  const input = document.getElementById("input");
-  if (!input) return;
-
-  const samples = {
-    idea: "这是一个关于命运、科技与人性的脑洞设想……",
-    setting: "这是一个高科技与旧秩序并存的世界，阶级分明……",
-    outline: "全书围绕主角的崛起与世界格局的变化展开……"
-  };
-
-  input.value = samples[stage] || "";
-  data[stage] = input.value;
+function updateVolume(i,k,v){
+  data.volumes[i][k]=v;
   save();
 }
 
-drawPage();
-</script>
+function generateChapterOutline(i){
+  const v = data.volumes[i];
+  v.chaptersOutline = [];
+  for(let n=1;n<=v.chapterCount;n++){
+    v.chaptersOutline.push(`第${n}章概述（由卷简介拆分）`);
+  }
+  alert("本卷章节概述已生成（将在章节细纲阶段查看）");
+  save();
+}
 
-</body>  
-</html>  
+/* ===== 启动 ===== */
+draw();
+</script>
+</body>
+</html>
