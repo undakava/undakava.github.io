@@ -1,68 +1,21 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-<meta charset="UTF-8">
-<title>赛博文豪</title>
-<style>
-body {
-  font-family: "PingFang SC","Microsoft YaHei",sans-serif;
-  background:#f5f6f8;
-  padding:20px;
-}
-h1 { text-align:center; }
-.stage {
-  font-size:18px;
-  font-weight:bold;
-  margin-bottom:12px;
-}
-.box {
-  background:#fff;
-  padding:16px;
-  border-radius:8px;
-  margin-bottom:16px;
-}
-textarea, button {
-  width:100%;
-  font-size:14px;
-  padding:10px;
-  margin-top:10px;
-}
-button {
-  background:#111;
-  color:#fff;
-  border:none;
-  border-radius:6px;
-}
-#result {
-  white-space:pre-wrap;
-  background:#eee;
-  padding:12px;
-  border-radius:6px;
-}
-</style>
+  <meta charset="UTF-8">
+  <title>赛博文豪</title>
 </head>
-
 <body>
 
 <h1>赛博文豪</h1>
 
-<div class="box">
-  <div id="stageTitle" class="stage"></div>
-  <div id="mainArea"></div>
-  <button id="actionBtn"></button>
-</div>
-
-<div id="result" style="display:none;"></div>
+<div id="app"></div>
 
 <script>
-let stage = "chapter";
 let currentVolume = 0;
 
 let data = JSON.parse(localStorage.getItem("data")) || {
   volumes: [
-    {
-      chapters: []
-    }
+    { chapters: [] }
   ]
 };
 
@@ -70,34 +23,34 @@ function save() {
   localStorage.setItem("data", JSON.stringify(data));
 }
 
-function smallBtn(text, onclick) {
-  return `<button onclick="${onclick}"
+function btn(text, fn) {
+  return `<button onclick="${fn}"
     style="
       width:22px;height:22px;
       margin-left:4px;
       border:1px solid #ccc;
-      background:#f9f9f9;
+      background:#f7f7f7;
       color:#333;
       border-radius:4px;
       cursor:pointer;
       padding:0;
-      line-height:1;
     ">${text}</button>`;
 }
 
-function draw() {
+function render() {
+  const app = document.getElementById("app");
   const v = data.volumes[currentVolume];
 
-  document.body.innerHTML = `
+  app.innerHTML = `
     <h2>章节细纲</h2>
 
-    <div style="margin-bottom:10px;">
-      卷数： ${data.volumes.length}
-      ${smallBtn("＋", "addVolume()")}
-      ${smallBtn("－", "removeVolume()")}
+    <div>
+      卷数：${data.volumes.length}
+      ${btn("＋", "addVolume()")}
+      ${btn("－", "removeVolume()")}
     </div>
 
-    <div style="margin-bottom:10px;">
+    <div style="margin-top:8px;">
       当前卷：
       <select onchange="switchVolume(this.value)">
         ${data.volumes.map((_, i) =>
@@ -106,13 +59,13 @@ function draw() {
       </select>
     </div>
 
-    <div style="margin-bottom:14px;">
+    <div style="margin-top:8px;">
       章节数：
       <input type="number" min="1" value="${v.chapters.length || 1}"
         style="width:60px"
         onchange="setChapterCount(this.value)">
-      ${smallBtn("＋", "changeChapter(1)")}
-      ${smallBtn("－", "changeChapter(-1)")}
+      ${btn("＋", "changeChapter(1)")}
+      ${btn("－", "changeChapter(-1)")}
     </div>
 
     <hr>
@@ -139,7 +92,7 @@ function draw() {
 
 function addVolume() {
   data.volumes.push({ chapters: [] });
-  save(); draw();
+  save(); render();
 }
 
 function removeVolume() {
@@ -147,12 +100,12 @@ function removeVolume() {
     data.volumes.pop();
     currentVolume = Math.max(0, currentVolume - 1);
   }
-  save(); draw();
+  save(); render();
 }
 
 function switchVolume(i) {
   currentVolume = Number(i);
-  save(); draw();
+  save(); render();
 }
 
 function setChapterCount(n) {
@@ -162,7 +115,7 @@ function setChapterCount(n) {
     v.chapters.push({ title:"", summary:"", detail:"" });
   while (v.chapters.length > n)
     v.chapters.pop();
-  save(); draw();
+  save(); render();
 }
 
 function changeChapter(d) {
@@ -175,7 +128,7 @@ function updateChapter(i, field, val) {
   save();
 }
 
-draw();
+render();
 </script>
 
 </body>
