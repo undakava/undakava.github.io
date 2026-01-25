@@ -55,8 +55,6 @@ button {
 <div id="result" style="display:none;"></div>
 
 <script>
-alert("赛博文豪 JS 已加载");
-
 let stages = ["idea", "setting", "outline", "volume", "chapter"];
 
 let stage = localStorage.getItem("stage") || "idea";
@@ -82,12 +80,25 @@ function save() {
   localStorage.setItem("stage", stage);
 }
 
-function drawNav() {
-  return stages.map(s =>
-    `<button onclick="jump('${s}')" style="margin-right:6px;${s===stage?'font-weight:bold;':''}">
-      ${titleMap[s]}
-     </button>`
-  ).join("");
+function drawSteps() {
+  return `
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;">
+      ${stages.map(s => `
+        <div 
+          onclick="jump('${s}')"
+          style="
+            padding:6px 12px;
+            border-radius:16px;
+            cursor:pointer;
+            font-size:14px;
+            background:${s===stage ? '#222' : '#eee'};
+            color:${s===stage ? '#fff' : '#333'};
+          ">
+          ${titleMap[s]}
+        </div>
+      `).join("")}
+    </div>
+  `;
 }
 
 function drawPage() {
@@ -96,18 +107,27 @@ function drawPage() {
   body.innerHTML = `
     <h1>赛博文豪</h1>
 
-    <div style="margin-bottom:10px;">
-      ${drawNav()}
-    </div>
+    ${drawSteps()}
 
     <p><b>当前阶段：${titleMap[stage]}</b></p>
 
-    <textarea id="input" style="width:100%;height:180px;">${data[stage]}</textarea>
+    <textarea id="input" style="
+      width:100%;
+      height:220px;
+      font-size:14px;
+      line-height:1.6;
+    ">${data[stage]}</textarea>
+
     <br><br>
 
+    <button onclick="generate()">生成本阶段内容</button>
     <button onclick="prev()">上一步</button>
     <button onclick="next()">下一步</button>
   `;
+}
+
+function generate() {
+  alert(`这里将调用 AI 生成【${titleMap[stage]}】内容`);
 }
 
 function jump(target) {
