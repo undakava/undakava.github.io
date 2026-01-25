@@ -57,6 +57,8 @@ button {
 <script>
 alert("赛博文豪 JS 已加载");
 
+let stages = ["idea", "setting", "outline", "volume", "chapter"];
+
 let stage = localStorage.getItem("stage") || "idea";
 
 let data = JSON.parse(localStorage.getItem("data")) || {
@@ -67,46 +69,76 @@ let data = JSON.parse(localStorage.getItem("data")) || {
   chapter: ""
 };
 
+let titleMap = {
+  idea: "脑洞",
+  setting: "世界观",
+  outline: "全书大纲",
+  volume: "卷纲",
+  chapter: "章节细纲"
+};
+
 function save() {
   localStorage.setItem("data", JSON.stringify(data));
   localStorage.setItem("stage", stage);
 }
 
+function drawNav() {
+  return stages.map(s =>
+    `<button onclick="jump('${s}')" style="margin-right:6px;${s===stage?'font-weight:bold;':''}">
+      ${titleMap[s]}
+     </button>`
+  ).join("");
+}
+
 function drawPage() {
   const body = document.body;
 
-  let titleMap = {
-    idea: "脑洞",
-    setting: "世界观设定",
-    outline: "全书大纲",
-    volume: "卷纲",
-    chapter: "章节细纲"
-  };
-
   body.innerHTML = `
     <h1>赛博文豪</h1>
+
+    <div style="margin-bottom:10px;">
+      ${drawNav()}
+    </div>
+
     <p><b>当前阶段：${titleMap[stage]}</b></p>
-    <textarea id="input" style="width:100%;height:140px;">${data[stage]}</textarea>
+
+    <textarea id="input" style="width:100%;height:180px;">${data[stage]}</textarea>
     <br><br>
+
+    <button onclick="prev()">上一步</button>
     <button onclick="next()">下一步</button>
   `;
 }
 
+function jump(target) {
+  const input = document.getElementById("input");
+  if (input) data[stage] = input.value;
+
+  stage = target;
+  save();
+  drawPage();
+}
+
 function next() {
   const input = document.getElementById("input");
-  if (input) {
-    data[stage] = input.value;
+  data[stage] = input.value;
+
+  let index = stages.indexOf(stage);
+  if (index < stages.length - 1) {
+    stage = stages[index + 1];
   }
 
-  if (stage === "idea") stage = "setting";
-  else if (stage === "setting") stage = "outline";
-  else if (stage === "outline") stage = "volume";
-  else if (stage === "volume") stage = "chapter";
-  else if (stage === "chapter") {
-    save();
-    alert("所有阶段内容已保存，下一步接 AI");
-    console.log(data);
-    return;
+  save();
+  drawPage();
+}
+
+function prev() {
+  const input = document.getElementById("input");
+  data[stage] = input.value;
+
+  let index = stages.indexOf(stage);
+  if (index > 0) {
+    stage = stages[index - 1];
   }
 
   save();
