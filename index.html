@@ -57,17 +57,14 @@ button {
 <script>
 let stages = ["idea", "setting", "outline", "volume", "chapter"];
 let stage = localStorage.getItem("stage") || "idea";
+let currentVolume = Number(localStorage.getItem("currentVolume")) || 0;
 
 let data = JSON.parse(localStorage.getItem("data")) || {
   idea: "",
   setting: "",
   outline: "",
-  volumes: [],
-  chapters: []
+  volumes: []   // 每卷里放自己的 chapters
 };
-
-let volumeCount = Number(localStorage.getItem("volumeCount")) || 1;
-let chapterCount = Number(localStorage.getItem("chapterCount")) || 1;
 
 let titleMap = {
   idea: "脑洞",
@@ -80,8 +77,7 @@ let titleMap = {
 function save() {
   localStorage.setItem("data", JSON.stringify(data));
   localStorage.setItem("stage", stage);
-  localStorage.setItem("volumeCount", volumeCount);
-  localStorage.setItem("chapterCount", chapterCount);
+  localStorage.setItem("currentVolume", currentVolume);
 }
 
 function drawSteps() {
@@ -89,13 +85,9 @@ function drawSteps() {
     <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px;">
       ${stages.map(s => `
         <div onclick="jump('${s}')"
-          style="
-            padding:6px 14px;
-            border-radius:20px;
-            cursor:pointer;
-            background:${s===stage?'#111':'#eee'};
-            color:${s===stage?'#fff':'#333'};
-          ">
+          style="padding:6px 14px;border-radius:20px;cursor:pointer;
+          background:${s===stage?'#111':'#eee'};
+          color:${s===stage?'#fff':'#333'};">
           ${titleMap[s]}
         </div>
       `).join("")}
@@ -103,58 +95,29 @@ function drawSteps() {
   `;
 }
 
-/* 卷数：只能点按钮 */
-function drawVolumeCounter(value) {
-  return `
-    <span style="display:inline-flex;align-items:center;border:1px solid #ccc;border-radius:6px;overflow:hidden;margin-left:8px;">
-      <input type="text" value="${value}" readonly
-        style="width:50px;text-align:center;border:none;">
-      <div style="display:flex;flex-direction:column;">
-        <button onclick="changeVolume(1)" style="border:none;padding:2px 6px;">＋</button>
-        <button onclick="changeVolume(-1)" style="border:none;padding:2px 6px;">－</button>
-      </div>
-    </span>
-  `;
-}
-
-/* 章节数：可手输 + 按钮 */
-function drawChapterCounter(value) {
-  return `
-    <span style="display:inline-flex;align-items:center;border:1px solid #ccc;border-radius:6px;overflow:hidden;margin-left:8px;">
-      <input type="number" min="1" value="${value}"
-        style="width:60px;text-align:center;border:none;"
-        onchange="setChapterCount(this.value)">
-      <div style="display:flex;flex-direction:column;">
-        <button onclick="changeChapter(1)" style="border:none;padding:2px 6px;">＋</button>
-        <button onclick="changeChapter(-1)" style="border:none;padding:2px 6px;">－</button>
-      </div>
-    </span>
-  `;
-}
-
 function drawPage() {
   const body = document.body;
 
+  /* 普通阶段 */
   if (stage !== "volume" && stage !== "chapter") {
     body.innerHTML = `
       <h1>赛博文豪</h1>
       ${drawSteps()}
       <p><b>当前阶段：${titleMap[stage]}</b></p>
       <textarea id="input" style="width:100%;height:240px;">${data[stage]||""}</textarea>
-      <br><br>
-      <button onclick="generate()">生成本阶段内容</button>
     `;
     return;
   }
 
+  /* 卷纲阶段 */
   if (stage === "volume") {
     body.innerHTML = `
       <h1>赛博文豪</h1>
       ${drawSteps()}
       <p><b>当前阶段：卷纲</b></p>
 
-      本书卷数：
-      ${drawVolumeCounter(volumeCount)}
+      <button onclick="addVolume()">＋ 增加一卷</button>
+      <button onclick="removeVolume()">－ 删除最后一卷</button>
 
       <hr>
 
@@ -162,30 +125,41 @@ function drawPage() {
         <div style="margin-bottom:20px;">
           <b>第 ${i+1} 卷</b><br>
           卷名：
-          <input style="width:60%;" value="${v.title}"
+          <input style="width:60%;" value="${v.title||""}"
             oninput="updateVolume(${i}, 'title', this.value)">
           <br><br>
           卷简介：
           <textarea style="width:100%;height:80px;"
-            oninput="updateVolume(${i}, 'desc', this.value)">${v.desc}</textarea>
+            oninput="updateVolume(${i}, 'desc', this.value)">${v.desc||""}</textarea>
         </div>
       `).join("")}
     `;
     return;
   }
 
+  /* 章节细纲阶段（绑定卷） */
   if (stage === "chapter") {
+    const v = data.volumes[currentVolume] || { chapters: [] };
+    const chapters = v.chapters || [];
+
     body.innerHTML = `
       <h1>赛博文豪</h1>
       ${drawSteps()}
       <p><b>当前阶段：章节细纲</b></p>
 
-      本卷章节数：
-      ${drawChapterCounter(chapterCount)}
+      当前卷：
+      <select onchange="switchVolume(this.value)">
+        ${data.volumes.map((_, i) =>
+          `<option value="${i}" ${i===currentVolume?"selected":""}>第 ${i+1} 卷</option>`
+        ).join("")}
+      </select>
+
+      <button onclick="addChapter()">＋ 章</button>
+      <button onclick="removeChapter()">－ 章</button>
 
       <hr>
 
-      ${data.chapters.map((c, i) => `
+      ${chapters.map((c, i) => `
         <div style="margin-bottom:16px;">
           <b>第 ${i+1} 章</b><br>
           <textarea style="width:100%;height:80px;"
@@ -196,39 +170,43 @@ function drawPage() {
   }
 }
 
-/* 卷数逻辑 */
-function changeVolume(delta) {
-  volumeCount = Math.max(1, volumeCount + delta);
-  data.volumes = Array.from({length: volumeCount}, () => ({title:"", desc:""}));
+/* 卷操作 */
+function addVolume() {
+  data.volumes.push({ title:"", desc:"", chapters:[] });
+  save(); drawPage();
+}
+function removeVolume() {
+  if (data.volumes.length > 1) {
+    data.volumes.pop();
+    currentVolume = Math.max(0, currentVolume - 1);
+  }
+  save(); drawPage();
+}
+function updateVolume(i,f,v){ data.volumes[i][f]=v; save(); }
+
+/* 章节绑定卷 */
+function switchVolume(i){
+  currentVolume = Number(i);
+  save(); drawPage();
+}
+function addChapter(){
+  data.volumes[currentVolume].chapters.push("");
+  save(); drawPage();
+}
+function removeChapter(){
+  const ch = data.volumes[currentVolume].chapters;
+  if (ch.length>1) ch.pop();
+  save(); drawPage();
+}
+function updateChapter(i,v){
+  data.volumes[currentVolume].chapters[i]=v;
   save();
-  drawPage();
 }
 
-/* 章节数逻辑 */
-function changeChapter(delta) {
-  setChapterCount(chapterCount + delta);
-}
-
-function setChapterCount(val) {
-  chapterCount = Math.max(1, Number(val) || 1);
-  data.chapters = Array.from({length: chapterCount}, () => "");
-  save();
-  drawPage();
-}
-
-function updateVolume(i, f, v) { data.volumes[i][f] = v; save(); }
-function updateChapter(i, v) { data.chapters[i] = v; save(); }
-
-function generate() {
-  alert(`这里将调用 AI 生成【${titleMap[stage]}】内容`);
-}
-
-function jump(t) {
-  const input = document.getElementById("input");
-  if (input) data[stage] = input.value;
-  stage = t;
-  save();
-  drawPage();
+function jump(t){
+  const input=document.getElementById("input");
+  if(input) data[stage]=input.value;
+  stage=t; save(); drawPage();
 }
 
 drawPage();
