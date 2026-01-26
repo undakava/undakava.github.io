@@ -146,8 +146,25 @@ function drawStage() {
         oninput="updateChapter('summary',this.value)">${c.summary||""}</textarea><br><br>
 
       章节细纲：<br>
-      <textarea style="width:100%;height:160px;"
-        oninput="updateChapter('detail',this.value)">${c.detail||""}</textarea>
+<textarea style="width:100%;height:160px;"
+  oninput="updateChapter('detail',this.value)">${
+    c.detail && c.detail.trim()
+      ? c.detail
+      : (
+`【剧情点 1】
+【剧情点 2】
+【剧情点 3】
+【剧情点 4】
+【剧情点 5】
+【剧情点 6】
+【剧情点 7】
+【剧情点 8】
+【剧情点 9】
+【剧情点 10】
+【剧情点 11】
+【剧情点 12】`
+      )
+  }</textarea>
     `;
   }
 
