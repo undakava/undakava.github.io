@@ -7,20 +7,21 @@
     body { font-family: sans-serif; padding: 20px; }
     textarea { width: 100%; box-sizing: border-box; }
     input { box-sizing: border-box; }
-    button { margin: 4px 4px 4px 0; }
-    .step { display:inline-block;padding:6px 14px;border-radius:20px;cursor:pointer;margin-right:8px;}
-    .active { background:#111;color:#fff;}
-    .inactive { background:#eee;color:#333;}
-    .card { border:1px solid #ddd;padding:12px;margin-bottom:14px;border-radius:6px;}
+    button { margin: 6px 6px 6px 0; }
+    .step { padding:6px 14px; border-radius:20px; cursor:pointer; }
+    .active { background:#111; color:#fff; }
+    .inactive { background:#eee; color:#333; }
+    .volume { border:1px solid #ddd; padding:14px; margin-bottom:16px; }
   </style>
 </head>
-
 <body>
+
 <h1>赛博文豪</h1>
+
 <div id="app"></div>
 
 <script>
-/* ===== 基础状态 ===== */
+/* ========= 基础数据 ========= */
 const stages = ["idea","setting","outline","volume"];
 const titleMap = {
   idea:"脑洞",
@@ -30,76 +31,86 @@ const titleMap = {
 };
 
 let stage = localStorage.getItem("stage") || "idea";
-
 let data = JSON.parse(localStorage.getItem("data")) || {
   idea:"",
   setting:"",
   outline:"",
-  volumes:[
-    { title:"", desc:"", chapterCount:5, chaptersOutline:[] }
-  ]
+  volumes:[]
 };
 
+/* ========= 工具函数 ========= */
 function save(){
   localStorage.setItem("stage",stage);
   localStorage.setItem("data",JSON.stringify(data));
 }
 
-/* ===== 页面绘制 ===== */
-function draw(){
-  const app = document.getElementById("app");
-
-  app.innerHTML = `
-    ${drawSteps()}
-    <h3>当前阶段：${titleMap[stage]}</h3>
-    ${drawStage()}
-  `;
-}
-
 function drawSteps(){
   return `
-    <div style="margin-bottom:16px;">
+    <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px;">
       ${stages.map(s=>`
-        <span class="step ${s===stage?'active':'inactive'}"
-          onclick="jumpStage('${s}')">${titleMap[s]}</span>
+        <div class="step ${s===stage?'active':'inactive'}"
+             onclick="jump('${s}')">
+          ${titleMap[s]}
+        </div>
       `).join("")}
     </div>
   `;
 }
 
-function drawStage(){
+/* ========= 页面渲染 ========= */
+function draw(){
+  const app = document.getElementById("app");
+
+  /* 通用阶段 */
   if(stage!=="volume"){
-    return `
-      <textarea rows="10"
-        oninput="data['${stage}']=this.value;save();">
-${data[stage]}</textarea>
-      <br>
-      <button onclick="fakeGenerate()">生成${titleMap[stage]}</button>
+    app.innerHTML = `
+      ${drawSteps()}
+      <p><b>当前阶段：${titleMap[stage]}</b></p>
+      <textarea id="mainInput" rows="10">${data[stage]||""}</textarea><br>
+      <button onclick="fakeGenerate()">生成（占位）</button>
     `;
+    return;
   }
 
-  return `
-    <button onclick="addVolume()">＋ 增加一卷</button>
-    <button onclick="removeVolume()">－ 删除最后一卷</button>
+  /* 卷纲阶段 */
+  app.innerHTML = `
+    ${drawSteps()}
+    <p><b>当前阶段：卷纲</b></p>
+
+    <div>
+      卷数：
+      <button onclick="changeVolume(-1)">－</button>
+      <b>${data.volumes.length}</b>
+      <button onclick="changeVolume(1)">＋</button>
+    </div>
+
+    <button onclick="generateVolumes()">根据全书大纲生成卷纲</button>
+
     <hr>
+
     ${data.volumes.map((v,i)=>`
-      <div class="card">
+      <div class="volume">
         <b>第 ${i+1} 卷</b><br><br>
 
         卷名：<br>
-        <input value="${v.title}" 
-          oninput="updateVolume(${i},'title',this.value)" style="width:100%;"><br><br>
+        <input value="${v.title||""}"
+          oninput="updateVolume(${i},'title',this.value)"
+          style="width:60%;"><br><br>
 
         卷简介：<br>
+        <textarea rows="4"
+          oninput="updateVolume(${i},'desc',this.value)">${v.desc||""}</textarea><br><br>
+
+        本卷主要角色：<br>
         <textarea rows="3"
-          oninput="updateVolume(${i},'desc',this.value)">${v.desc}</textarea><br><br>
+          oninput="updateVolume(${i},'roles',this.value)">${v.roles||""}</textarea><br><br>
 
         本卷章节数：
-        <input type="number" min="1" value="${v.chapterCount}"
-          oninput="updateVolume(${i},'chapterCount',Number(this.value))"
-          style="width:80px;"><br><br>
+        <input type="number" min="1" value="${v.chapterCount||1}"
+          oninput="updateVolume(${i},'chapterCount',this.value)">
+        <br><br>
 
-        <button onclick="generateChapterOutline(${i})">
+        <button onclick="generateChapterSummary(${i})">
           生成本卷章节概述
         </button>
       </div>
@@ -107,48 +118,58 @@ ${data[stage]}</textarea>
   `;
 }
 
-/* ===== 行为 ===== */
-function jumpStage(s){ stage=s; save(); draw(); }
-
-function fakeGenerate(){
-  data[stage] = `【${titleMap[stage]}生成结果】\n（此处未来接入 Gemini）`;
+/* ========= 行为 ========= */
+function jump(t){
+  const input = document.getElementById("mainInput");
+  if(input) data[stage]=input.value;
+  stage=t;
   save(); draw();
 }
 
-function addVolume(){
-  data.volumes.push({
-    title:"",
-    desc:"",
-    chapterCount:5,
-    chaptersOutline:[]
+function fakeGenerate(){
+  alert("这里未来接入 Gemini");
+}
+
+function changeVolume(n){
+  if(n>0){
+    data.volumes.push({
+      title:"",
+      desc:"",
+      roles:"",
+      chapterCount:1,
+      chapters:[]
+    });
+  }else{
+    if(data.volumes.length>0) data.volumes.pop();
+  }
+  save(); draw();
+}
+
+function generateVolumes(){
+  if(!data.outline){
+    alert("请先填写全书大纲");
+    return;
+  }
+  data.volumes.forEach((v,i)=>{
+    if(!v.desc){
+      v.desc = `第 ${i+1} 卷：基于全书大纲生成的卷简介（占位）`;
+    }
   });
   save(); draw();
 }
 
-function removeVolume(){
-  if(data.volumes.length>1){
-    data.volumes.pop();
-    save(); draw();
-  }
-}
-
-function updateVolume(i,k,v){
-  data.volumes[i][k]=v;
+function updateVolume(i,key,val){
+  data.volumes[i][key]=val;
   save();
 }
 
-function generateChapterOutline(i){
-  const v = data.volumes[i];
-  v.chaptersOutline = [];
-  for(let n=1;n<=v.chapterCount;n++){
-    v.chaptersOutline.push(`第${n}章概述（由卷简介拆分）`);
-  }
-  alert("本卷章节概述已生成（将在章节细纲阶段查看）");
-  save();
+function generateChapterSummary(i){
+  alert("章节概述已生成（占位），将在章节细纲阶段显示");
 }
 
-/* ===== 启动 ===== */
+/* ========= 启动 ========= */
 draw();
 </script>
+
 </body>
 </html>
