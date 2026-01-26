@@ -129,6 +129,38 @@ function jump(t) {
   save();
   drawPage();
 }
+function generateChapterSummaries(volumeIndex) {
+  const v = data.volumes[volumeIndex];
+  if (!v) return;
+
+  const count = Number(v.chapterCount || 0);
+  if (count <= 0) {
+    alert("请先填写本卷章节数");
+    return;
+  }
+
+  if (v.chapters && v.chapters.length > 0) {
+    const ok = confirm("已存在章节概述，是否覆盖？");
+    if (!ok) return;
+  }
+
+  const summaries = [];
+  for (let i = 0; i < count; i++) {
+    summaries.push({
+      summary:
+        `第 ${i + 1} 章：\n` +
+        `本章围绕本卷主线展开关键情节，推动人物关系与冲突发展。\n` +
+        `事件在本章中逐步升级，并为后续章节埋下伏笔。\n` +
+        `同时揭示新的信息或转折点。`,
+      detail: ""
+    });
+  }
+
+  v.chapters = summaries;
+  save();
+
+  alert("本卷章节概述已生成，可在【章节细纲】阶段查看和修改。");
+}
 
 drawPage();
 </script>
