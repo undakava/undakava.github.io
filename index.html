@@ -9,10 +9,10 @@
 <h1>赛博文豪</h1>
 
 <script>
-/* ===== 基础状态 ===== */
 const stages = ["idea", "setting", "outline", "volume", "chapter"];
 let stage = localStorage.getItem("stage") || "idea";
 let currentVolume = Number(localStorage.getItem("currentVolume")) || 0;
+let currentChapter = Number(localStorage.getItem("currentChapter")) || 0;
 
 let data = JSON.parse(localStorage.getItem("data")) || {
   idea: "",
@@ -33,9 +33,9 @@ function save() {
   localStorage.setItem("data", JSON.stringify(data));
   localStorage.setItem("stage", stage);
   localStorage.setItem("currentVolume", currentVolume);
+  localStorage.setItem("currentChapter", currentChapter);
 }
 
-/* ===== 流程条 ===== */
 function drawSteps() {
   return `
     <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px;">
@@ -51,7 +51,6 @@ function drawSteps() {
   `;
 }
 
-/* ===== 页面绘制 ===== */
 function drawPage() {
   document.body.innerHTML = `
     <h1>赛博文豪</h1>
@@ -60,10 +59,8 @@ function drawPage() {
   `;
 }
 
-/* ===== 各阶段 ===== */
 function drawStage() {
 
-  /* 脑洞 / 世界观 / 全书大纲 */
   if (stage === "idea" || stage === "setting" || stage === "outline") {
     return `
       <p><b>当前阶段：${titleMap[stage]}</b></p>
@@ -74,7 +71,6 @@ function drawStage() {
     `;
   }
 
-  /* ===== 卷纲阶段（最小稳定骨架） ===== */
   if (stage === "volume") {
     if (data.volumes.length === 0) {
       data.volumes.push({ title:"", desc:"", chapterCount:0, chapters:[] });
@@ -84,35 +80,30 @@ function drawStage() {
     return `
       <p><b>当前阶段：卷纲</b></p>
 
-      <div style="margin-bottom:12px;">
+      <div>
         卷数：
         <button onclick="addVolume()">＋</button>
         <button onclick="removeVolume()">－</button>
         <span>${data.volumes.length}</span>
       </div>
-
       <hr>
 
-      ${data.volumes.map((v, i) => `
+      ${data.volumes.map((v,i)=>`
         <div style="border:1px solid #ccc;padding:10px;margin-bottom:12px;">
           <b>第 ${i+1} 卷</b><br><br>
 
           卷名：<br>
-          <input style="width:100%;"
-            value="${v.title || ""}"
-            oninput="vUpdate(${i}, 'title', this.value)">
-          <br><br>
+          <input style="width:100%;" value="${v.title||""}"
+            oninput="vUpdate(${i},'title',this.value)"><br><br>
 
           卷简介：<br>
           <textarea style="width:100%;height:80px;"
-            oninput="vUpdate(${i}, 'desc', this.value)">${v.desc || ""}</textarea>
-          <br><br>
+            oninput="vUpdate(${i},'desc',this.value)">${v.desc||""}</textarea><br><br>
 
           本卷章节数：<br>
           <input type="number" min="1" style="width:80px;"
-            value="${v.chapterCount || 0}"
-            oninput="vUpdate(${i}, 'chapterCount', this.value)">
-          <br><br>
+            value="${v.chapterCount||0}"
+            oninput="vUpdate(${i},'chapterCount',this.value)"><br><br>
 
           <button onclick="generateChapterSummaries(${i})">
             根据卷纲生成章节概述
@@ -122,71 +113,80 @@ function drawStage() {
     `;
   }
 
-  /* 章节细纲阶段（占位，不白屏） */
   if (stage === "chapter") {
+    const v = data.volumes[currentVolume];
+    if (!v || !v.chapters || v.chapters.length === 0) {
+      return `<p>请先在卷纲阶段生成章节概述</p>`;
+    }
+    const c = v.chapters[currentChapter];
+
     return `
       <p><b>当前阶段：章节细纲</b></p>
-      <p>章节细纲阶段将在下一步展开</p>
+
+      当前卷：
+      <select onchange="switchVolume(this.value)">
+        ${data.volumes.map((_,i)=>`
+          <option value="${i}" ${i===currentVolume?"selected":""}>
+            第 ${i+1} 卷
+          </option>`).join("")}
+      </select>
+
+      当前章：
+      <select onchange="switchChapter(this.value)">
+        ${v.chapters.map((_,i)=>`
+          <option value="${i}" ${i===currentChapter?"selected":""}>
+            第 ${i+1} 章
+          </option>`).join("")}
+      </select>
+
+      <hr>
+
+      章节概述：<br>
+      <textarea style="width:100%;height:100px;"
+        oninput="updateChapter('summary',this.value)">${c.summary||""}</textarea><br><br>
+
+      章节细纲：<br>
+      <textarea style="width:100%;height:160px;"
+        oninput="updateChapter('detail',this.value)">${c.detail||""}</textarea>
     `;
   }
 
   return "";
 }
 
-/* ===== 生成占位 ===== */
 function generateCurrent() {
-  if (stage === "idea") data.idea = "【脑洞示例】一个故事的最初想法。";
-  if (stage === "setting") data.setting = "【世界观示例】故事发生的背景。";
-  if (stage === "outline") data.outline = "【全书大纲示例】起承转合。";
+  if (stage==="idea") data.idea="【脑洞示例】";
+  if (stage==="setting") data.setting="【世界观示例】";
+  if (stage==="outline") data.outline="【全书大纲示例】";
   save();
-  const input = document.getElementById("input");
-  if (input) input.value = data[stage];
+  const input=document.getElementById("input");
+  if(input) input.value=data[stage];
 }
 
-/* ===== 卷操作 ===== */
-function addVolume() {
-  data.volumes.push({ title:"", desc:"", chapterCount:0, chapters:[] });
-  save(); drawPage();
-}
-function removeVolume() {
-  if (data.volumes.length > 1) data.volumes.pop();
-  save(); drawPage();
-}
-function vUpdate(i, k, v) {
-  data.volumes[i][k] = v;
+function addVolume(){ data.volumes.push({title:"",desc:"",chapterCount:0,chapters:[]}); save(); drawPage();}
+function removeVolume(){ if(data.volumes.length>1)data.volumes.pop(); save(); drawPage();}
+function vUpdate(i,k,v){ data.volumes[i][k]=v; save(); }
+
+function generateChapterSummaries(i){
+  const v=data.volumes[i];
+  const n=Number(v.chapterCount||0);
+  if(n<=0){alert("请填写章节数");return;}
+  if(v.chapters.length>0&&!confirm("覆盖已有章节概述？"))return;
+  v.chapters=[];
+  for(let x=0;x<n;x++){
+    v.chapters.push({summary:`第 ${x+1} 章：本章推进主线并制造冲突。`,detail:""});
+  }
   save();
 }
 
-/* ===== 章节概述生成（你刚才确认的逻辑） ===== */
-function generateChapterSummaries(i) {
-  const v = data.volumes[i];
-  const count = Number(v.chapterCount || 0);
-  if (count <= 0) {
-    alert("请填写本卷章节数");
-    return;
-  }
-  if (v.chapters && v.chapters.length > 0) {
-    if (!confirm("已存在章节概述，是否覆盖？")) return;
-  }
-  v.chapters = [];
-  for (let n = 0; n < count; n++) {
-    v.chapters.push({
-      summary:
-        `第 ${n+1} 章：本章围绕本卷主线展开，推动情节与人物关系发展。\n` +
-        `冲突在本章中逐步升级，并为后续章节埋下伏笔。\n` +
-        `同时揭示新的信息或转折。`,
-      detail: ""
-    });
-  }
-  save();
-  alert("章节概述已生成，可在章节细纲阶段查看");
-}
+function switchVolume(i){ currentVolume=Number(i); currentChapter=0; save(); drawPage();}
+function switchChapter(i){ currentChapter=Number(i); save(); drawPage();}
+function updateChapter(k,v){ data.volumes[currentVolume].chapters[currentChapter][k]=v; save();}
 
-/* ===== 跳转 ===== */
-function jump(t) {
-  const input = document.getElementById("input");
-  if (input) data[stage] = input.value;
-  stage = t;
+function jump(t){
+  const input=document.getElementById("input");
+  if(input) data[stage]=input.value;
+  stage=t;
   save();
   drawPage();
 }
