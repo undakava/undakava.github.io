@@ -227,6 +227,23 @@ function jump(t){
 }
 
 draw();
+// —— 安全测试用生成按钮（只作用于全书大纲）——
+setTimeout(() => {
+  if(stage === "outline"){
+    const app = document.getElementById("app");
+    if(app){
+      const btn = document.createElement("button");
+      btn.innerText = "生成全书大纲（占位）";
+      btn.onclick = () => {
+        data.outline = "【全书大纲占位示例】\n\n这是一个用于测试生成按钮是否正常显示的文本。";
+        save();
+        draw();
+      };
+      app.appendChild(btn);
+    }
+  }
+}, 0);
+
 </script>
 
 </body>
