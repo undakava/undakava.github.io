@@ -279,6 +279,19 @@ function mountOutlineButton(){
 // 每次渲染后尝试挂按钮
 setInterval(mountOutlineButton, 200);
 
+function genOutline(){
+  data.outline =
+`【全书大纲示例】
+
+开头 → 冲突 → 转折 → 高潮 → 结局`;
+
+  save();
+
+  const input = document.getElementById("input");
+  if(input){
+    input.value = data.outline;
+  }
+}
 </script>
 
 </body>
