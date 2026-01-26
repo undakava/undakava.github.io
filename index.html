@@ -66,12 +66,22 @@ function draw(){
 
   /* 通用阶段 */
   if(stage!=="volume" && stage!=="chapter"){
-    app.innerHTML = `
-      ${drawSteps()}
-      <b>当前阶段：${titleMap[stage]}</b><br><br>
-      <textarea id="input" style="width:100%;height:260px;">${data[stage]||""}</textarea>
-    `;
-    return;
+  app.innerHTML = `
+    ${drawSteps()}
+    <b>当前阶段：${titleMap[stage]}</b><br><br>
+
+    <textarea id="input" style="width:100%;height:260px;">
+${data[stage]||""}
+    </textarea>
+
+    ${stage==="outline"
+      ? `<button onclick="genOutline()" style="margin-top:10px;">
+           生成全书大纲
+         </button>`
+      : ``}
+  `;
+  return;
+}
   }
 
   /* 卷纲阶段 */
