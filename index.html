@@ -248,30 +248,7 @@ function mountOutlineButton(){
   // 防止重复插按钮
   if(document.getElementById("outlineGenBtn")) return;
 
-  const btn = document.createElement("button");
-  btn.id = "outlineGenBtn";
-  btn.innerText = "生成全书大纲（占位）";
-  btn.style.display = "block";
-  btn.style.marginTop = "12px";
-
-  btn.onclick = () => {
-    data.outline =
-`【全书大纲（占位示例）】
-
-第一幕：故事引子与主角登场  
-第二幕：冲突升级与世界展开  
-第三幕：重大转折与危机  
-第四幕：终局对抗与真相  
-第五幕：结局与余波`;
-
-    save();
-
-    // 自动同步文本框内容（不重绘页面）
-    const input = document.getElementById("input");
-    if(input){
-      input.value = data.outline;
-    }
-  };
+  
 
   app.appendChild(btn);
 }
