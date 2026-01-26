@@ -98,55 +98,71 @@ function draw(){
   }
 
   /* 章节细纲阶段 */
-  if(stage==="chapter"){
-    const v = data.volumes[currentVolume];
-    if(!v){ app.innerHTML = drawSteps()+"<p>请先创建卷纲</p>"; return; }
-
-    const chapters = v.chapters || [];
-    const ch = chapters[currentChapter];
-
-    app.innerHTML = `
-      ${drawSteps()}
-      <b>当前阶段：章节细纲</b><br><br>
-
-      当前卷：
-      <select onchange="switchVolume(this.value)">
-        ${data.volumes.map((_,i)=>`
-          <option value="${i}" ${i===currentVolume?"selected":""}>
-            第 ${i+1} 卷
-          </option>
-        `).join("")}
-      </select>
-
-      当前章：
-      <select onchange="switchChapter(this.value)">
-        ${chapters.map((_,i)=>`
-          <option value="${i}" ${i===currentChapter?"selected":""}>
-            第 ${i+1} 章
-          </option>
-        `).join("")}
-      </select>
-
-      <hr>
-
-      <b>章节概述</b><br>
-      <textarea style="width:100%;height:100px;"
-        oninput="updateChapterField('summary',this.value)">
-        ${ch?.summary||""}
-      </textarea><br>
-
-      <button onclick="genPoints()">根据卷简介 & 章节概述生成章节细纲</button>
-
-      <hr>
-
-      <b>章节细纲（12 个剧情点）</b><br><br>
-      ${(ch?.points||[]).map((p,i)=>`
-        剧情点 ${i+1}：<br>
-        <textarea style="width:100%;height:60px;"
-          oninput="updatePoint(${i},this.value)">${p}</textarea><br><br>
-      `).join("")}
-    `;
+if(stage==="chapter"){
+  const v = data.volumes[currentVolume];
+  if(!v){
+    app.innerHTML = drawSteps() + "<p>请先创建卷纲</p>";
+    return;
   }
+
+  // 👉 关键兜底：保证至少有 1 章
+  if(!Array.isArray(v.chapters)){
+    v.chapters = [];
+  }
+  if(v.chapters.length === 0){
+    v.chapters.push({
+      summary: "",
+      points: Array(12).fill("")
+    });
+    currentChapter = 0;
+    save();
+  }
+
+  const chapters = v.chapters;
+  const ch = chapters[currentChapter];
+
+  app.innerHTML = `
+    ${drawSteps()}
+    <b>当前阶段：章节细纲</b><br><br>
+
+    当前卷：
+    <select onchange="switchVolume(this.value)">
+      ${data.volumes.map((_,i)=>`
+        <option value="${i}" ${i===currentVolume?"selected":""}>
+          第 ${i+1} 卷
+        </option>
+      `).join("")}
+    </select>
+
+    当前章：
+    <select onchange="switchChapter(this.value)">
+      ${chapters.map((_,i)=>`
+        <option value="${i}" ${i===currentChapter?"selected":""}>
+          第 ${i+1} 章
+        </option>
+      `).join("")}
+    </select>
+
+    <hr>
+
+    <b>章节概述</b><br>
+    <textarea style="width:100%;height:100px;"
+      oninput="updateChapterField('summary',this.value)">
+      ${ch.summary || ""}
+    </textarea><br>
+
+    <button onclick="genPoints()">根据卷简介 & 章节概述生成章节细纲</button>
+
+    <hr>
+
+    <b>章节细纲（12 个剧情点）</b><br><br>
+    ${ch.points.map((p,i)=>`
+      剧情点 ${i+1}：<br>
+      <textarea style="width:100%;height:60px;"
+        oninput="updatePoint(${i},this.value)">${p}</textarea><br><br>
+    `).join("")}
+  `;
+}
 }
 
 /* ========= 卷操作 ========= */
