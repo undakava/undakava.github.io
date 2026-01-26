@@ -102,6 +102,14 @@ function draw(){
     const v = data.volumes[currentVolume];
     if(!v){ app.innerHTML = drawSteps()+"<p>请先创建卷纲</p>"; return; }
 
+if(v.chapters.length === 0){
+  v.chapters.push({
+    summary: "",
+    points: Array(12).fill("")
+  });
+  save();
+}
+
     const chapters = v.chapters || [];
     const ch = chapters[currentChapter];
 
