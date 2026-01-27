@@ -218,42 +218,6 @@ function jump(t){
 
 drawPage();
 
-function genDetailFromSummary(){
-  const c = data.volumes[currentVolume].chapters[currentChapter];
-  if(c.detail && c.detail.trim()){
-    if(!confirm("已有章节剧情点，是否覆盖？")) return;
-  }
-  c.detail =
-`【剧情点 1】${c.summary || ""}
-【剧情点 2】
-【剧情点 3】
-【剧情点 4】
-【剧情点 5】
-【剧情点 6】
-【剧情点 7】
-【剧情点 8】
-【剧情点 9】
-【剧情点 10】
-【剧情点 11】
-【剧情点 12】`;
-  save();
-  drawPage();
-}
-
-function genContentFromDetail(){
-  const c = data.volumes[currentVolume].chapters[currentChapter];
-  if(c.content && c.content.trim()){
-    if(!confirm("已有章节正文，是否覆盖？")) return;
-  }
-  c.content =
-`【章节正文（草稿）】
-
-${c.detail}
-
-（正文由剧情点扩写而成，占位示例）`;
-  save();
-}
-
 </script>
 
 </body>
