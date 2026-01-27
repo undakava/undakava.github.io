@@ -114,43 +114,50 @@ function drawStage() {
   }
 
   if (stage === "chapter") {
-    const v = data.volumes[currentVolume];
-    if (!v || !v.chapters || v.chapters.length === 0) {
-      return `<p>请先在卷纲阶段生成章节概述</p>`;
-    }
-    const c = v.chapters[currentChapter];
+  const v = data.volumes[currentVolume];
+  if (!v || !v.chapters || v.chapters.length === 0) {
+    return `<p>请先在卷纲阶段生成章节概述</p>`;
+  }
 
-    return `
-      <p><b>当前阶段：章节细纲</b></p>
+  const c = v.chapters[currentChapter];
 
-      当前卷：
-      <select onchange="switchVolume(this.value)">
-        ${data.volumes.map((_,i)=>`
-          <option value="${i}" ${i===currentVolume?"selected":""}>
-            第 ${i+1} 卷
-          </option>`).join("")}
-      </select>
+  return `
+    <p><b>当前阶段：章节细纲</b></p>
 
-      当前章：
-      <select onchange="switchChapter(this.value)">
-        ${v.chapters.map((_,i)=>`
-          <option value="${i}" ${i===currentChapter?"selected":""}>
-            第 ${i+1} 章
-          </option>`).join("")}
-      </select>
+    当前卷：
+    <select onchange="switchVolume(this.value)">
+      ${data.volumes.map((_,i)=>`
+        <option value="${i}" ${i===currentVolume?"selected":""}>
+          第 ${i+1} 卷
+        </option>`).join("")}
+    </select>
 
-      <hr>
+    当前章：
+    <select onchange="switchChapter(this.value)">
+      ${v.chapters.map((_,i)=>`
+        <option value="${i}" ${i===currentChapter?"selected":""}>
+          第 ${i+1} 章
+        </option>`).join("")}
+    </select>
 
-      章节概述：<br>
-      <textarea style="width:100%;height:100px;"
-        oninput="updateChapter('summary',this.value)">${c.summary||""}</textarea><br><br>
+    <hr>
 
-      章节细纲：<br>
-<textarea style="width:100%;height:160px;"
-  oninput="updateChapter('detail',this.value)">${
-    c.detail && c.detail.trim()
-      ? c.detail
-      : (
+    <b>章节概述</b><br>
+    <textarea style="width:100%;height:100px;"
+      oninput="updateChapter('summary',this.value)">${c.summary||""}</textarea><br>
+
+    <button onclick="genDetailFromSummary()">
+      根据章节概述生成章节剧情点
+    </button>
+
+    <hr>
+
+    <b>章节剧情点（12 点）</b><br>
+    <textarea style="width:100%;height:180px;"
+      oninput="updateChapter('detail',this.value)">${
+        c.detail && c.detail.trim()
+          ? c.detail
+          : (
 `【剧情点 1】
 【剧情点 2】
 【剧情点 3】
@@ -163,12 +170,13 @@ function drawStage() {
 【剧情点 10】
 【剧情点 11】
 【剧情点 12】`
-      )
-  }</textarea>
-    `;
-  }
+          )
+      }</textarea><br>
 
-  return "";
+    <button onclick="genContentFromDetail()">
+      根据章节剧情点生成章节正文
+    </button>
+  `;
 }
 
 function generateCurrent() {
@@ -209,6 +217,43 @@ function jump(t){
 }
 
 drawPage();
+
+function genDetailFromSummary(){
+  const c = data.volumes[currentVolume].chapters[currentChapter];
+  if(c.detail && c.detail.trim()){
+    if(!confirm("已有章节剧情点，是否覆盖？")) return;
+  }
+  c.detail =
+`【剧情点 1】${c.summary || ""}
+【剧情点 2】
+【剧情点 3】
+【剧情点 4】
+【剧情点 5】
+【剧情点 6】
+【剧情点 7】
+【剧情点 8】
+【剧情点 9】
+【剧情点 10】
+【剧情点 11】
+【剧情点 12】`;
+  save();
+  drawPage();
+}
+
+function genContentFromDetail(){
+  const c = data.volumes[currentVolume].chapters[currentChapter];
+  if(c.content && c.content.trim()){
+    if(!confirm("已有章节正文，是否覆盖？")) return;
+  }
+  c.content =
+`【章节正文（草稿）】
+
+${c.detail}
+
+（正文由剧情点扩写而成，占位示例）`;
+  save();
+}
+
 </script>
 
 </body>
