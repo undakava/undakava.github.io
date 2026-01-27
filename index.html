@@ -6,8 +6,12 @@
 </head>
 <body>
 
-<h1>赛博文豪</h1>
-<div id="app"></div>
+<h1 style="text-align:center;">赛博文豪</h1>
+
+<!-- 工作台容器 -->
+<div style="max-width:900px;margin:0 auto;">
+  <div id="app"></div>
+</div>
 
 <script>
 /* ===== 基础状态 ===== */
@@ -55,19 +59,17 @@ function drawSteps(){
 function draw(){
   const app = document.getElementById("app");
 
-  /* 文本阶段 */
   if(stage==="idea"||stage==="setting"||stage==="outline"){
     app.innerHTML = `
       ${drawSteps()}
       <p><b>${titleMap[stage]}</b></p>
-      <textarea id="mainInput" style="width:100%;height:220px;">${data[stage]}</textarea>
+      <textarea id="mainInput" style="width:100%;height:140px;">${data[stage]}</textarea>
       <br><br>
       <button onclick="generateText()">生成${titleMap[stage]}</button>
     `;
     return;
   }
 
-  /* ===== 卷纲阶段 ===== */
   if(stage==="volume"){
     app.innerHTML = `
       ${drawSteps()}
@@ -77,9 +79,7 @@ function draw(){
       <button onclick="removeVolume()">－ 删除一卷</button>
 
       <br><br>
-      <button onclick="genAllVolumeDesc()">
-        根据全书大纲生成卷简介
-      </button>
+      <button onclick="genAllVolumeDesc()">根据全书大纲生成卷简介</button>
 
       <hr>
 
@@ -88,10 +88,8 @@ function draw(){
           <b>第 ${i+1} 卷</b><br><br>
 
           卷简介：<br>
-          <textarea style="width:100%;height:80px;"
-            oninput="updateVolumeDesc(${i},this.value)">
-            ${v.desc||""}
-          </textarea><br><br>
+          <textarea style="width:100%;height:56px;"
+            oninput="updateVolumeDesc(${i},this.value)">${v.desc||""}</textarea><br><br>
 
           本卷章节数：
           <input type="number" min="1" value="${v.chapterCount||10}"
@@ -106,12 +104,11 @@ function draw(){
     return;
   }
 
-  /* ===== 章节细纲（占位） ===== */
   if(stage==="chapter"){
     app.innerHTML = `
       ${drawSteps()}
       <p><b>章节细纲</b></p>
-      <p>（当前为稳定占位版本，结构保持不变）</p>
+      <p>（稳定占位，结构保持不变）</p>
     `;
   }
 }
@@ -125,49 +122,28 @@ function jump(s){
 }
 
 function generateText(){
-  data[stage] = `【${titleMap[stage]} · 占位生成】`;
+  data[stage]=`【${titleMap[stage]} · 占位生成】`;
   save(); draw();
 }
 
 /* ===== 卷纲逻辑 ===== */
 function addVolume(){
-  data.volumes.push({
-    desc:"",
-    chapterCount:10,
-    chapters:[]
-  });
+  data.volumes.push({desc:"",chapterCount:10,chapters:[]});
   save(); draw();
 }
-
 function removeVolume(){
   data.volumes.pop();
-  currentVolume=Math.max(0,currentVolume-1);
   save(); draw();
 }
-
-function updateVolumeDesc(i,v){
-  data.volumes[i].desc=v;
-  save();
-}
-
-function updateChapterCount(i,v){
-  data.volumes[i].chapterCount=Number(v);
-  save();
-}
-
-/* 全书大纲 → 所有卷简介 */
+function updateVolumeDesc(i,v){data.volumes[i].desc=v;save();}
+function updateChapterCount(i,v){data.volumes[i].chapterCount=Number(v);save();}
 function genAllVolumeDesc(){
-  if(!data.outline){
-    alert("请先填写全书大纲");
-    return;
-  }
+  if(!data.outline){alert("请先填写全书大纲");return;}
   data.volumes.forEach((v,i)=>{
-    v.desc = `【第 ${i+1} 卷 · 卷简介占位】\n${data.outline}`;
+    v.desc=`【第 ${i+1} 卷 · 卷简介占位】\n${data.outline}`;
   });
   save(); draw();
 }
-
-/* 卷简介 → 本卷章节概述 */
 function genChapterOutline(i){
   const v=data.volumes[i];
   v.chapters=[];
@@ -177,7 +153,6 @@ function genChapterOutline(i){
   save();
 }
 
-/* ===== 启动 ===== */
 draw();
 </script>
 
