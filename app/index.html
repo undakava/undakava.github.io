@@ -8,6 +8,7 @@ body{font-family:sans-serif;}
 .container{max-width:900px;margin:0 auto;}
 textarea{width:100%;box-sizing:border-box;}
 button{margin:4px 6px 4px 0;}
+.clear-btn{background:#f66;color:#fff;padding:6px 12px;border:none;border-radius:4px;}
 </style>
 </head>
 <body>
@@ -15,6 +16,8 @@ button{margin:4px 6px 4px 0;}
 <h1 style="text-align:center;">赛博文豪</h1>
 
 <div class="container">
+  <!-- 新增清理数据按钮 -->
+  <button class="clear-btn" onclick="clearData()">清理页面存储（localStorage）</button>
   <div id="app"></div>
 </div>
 
@@ -36,6 +39,12 @@ function save(){
   localStorage.setItem("stage", stage);
   localStorage.setItem("currentVolume", currentVolume);
   localStorage.setItem("data", JSON.stringify(data));
+}
+
+/* ===== 清理数据按钮功能 ===== */
+function clearData(){
+  localStorage.clear();
+  alert('网页数据已清理，请刷新页面！');
 }
 
 /* ===== 顶部步骤 ===== */
@@ -124,7 +133,6 @@ function genWorld(){
 
 /* ===== 全书大纲 ===== */
 function genOutline(){
-  // 安全生成，不显示前期设定
   data.outline = "【全书大纲生成占位】";
   save(); draw();
 }
