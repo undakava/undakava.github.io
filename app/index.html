@@ -121,13 +121,24 @@ function jump(s){
   draw();
 }
 
-/* ===== 前期设定 ===== */
+/* ===== 前期设定占位规则 ===== */
 function genIdea(){
-  data.preset += (data.preset ? "\n\n" : "") + "【脑洞生成占位】";
+  if(!data.preset || !data.preset.includes('脑洞生成占位')){
+    // 脑洞占位插在开头
+    data.preset = "【脑洞生成占位】" + (data.preset ? "\n\n" + data.preset : "");
+  }
   save(); draw();
 }
+
 function genWorld(){
-  data.preset += (data.preset ? "\n\n" : "") + "【世界观生成占位】";
+  if(data.preset.includes('世界观生成占位')) return; // 防止重复生成
+  if(data.preset.includes('脑洞生成占位')){
+    // 在脑洞占位下插入世界观占位
+    data.preset = data.preset.replace('脑洞生成占位', '脑洞生成占位\n\n【世界观生成占位】');
+  } else {
+    // 如果脑洞占位不存在，先生成脑洞再生成世界观
+    data.preset = "【脑洞生成占位】\n\n【世界观生成占位】";
+  }
   save(); draw();
 }
 
