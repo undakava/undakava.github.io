@@ -11,6 +11,7 @@
   .stage-btn { margin-right:6px; }
   .active { background:#111;color:#fff; }
   .block { margin-bottom:20px; }
+  .warn { color:#b00; font-weight:bold; }
 </style>
 </head>
 <body>
@@ -21,7 +22,7 @@
 </div>
 
 <script>
-/* ===== 基础状态 ===== */
+/* ================= 基础状态 ================= */
 const stages = ["preset","outline","volume","chapter"];
 const titleMap = {
   preset:"前期设定",
@@ -47,7 +48,7 @@ function save(){
   localStorage.setItem("data",JSON.stringify(data));
 }
 
-/* ===== 顶部导航 ===== */
+/* ================= 顶部导航 ================= */
 function drawSteps(){
   return `
     <div class="block">
@@ -59,39 +60,35 @@ function drawSteps(){
   `;
 }
 
-/* ===== 主渲染 ===== */
+/* ================= 主渲染 ================= */
 function draw(){
   const app = document.getElementById("app");
   let html = drawSteps();
 
-  /* 前期设定 */
+  /* ---------- 前期设定 ---------- */
   if(stage==="preset"){
     html+=`
       <b>前期设定（脑洞 + 世界观）</b><br><br>
       <textarea rows="10"
-        oninput="data.preset=this.value;save();">${data.preset}</textarea><br><br>
-      <button onclick="data.preset='【脑洞占位】\\n\\n'+data.preset;save();draw();">
-        生成脑洞
-      </button>
-      <button onclick="data.preset+='\\n\\n【世界观占位】';save();draw();">
-        生成世界观
-      </button>
+        oninput="data.preset=this.value;save();">${data.preset||""}</textarea><br><br>
+      <button onclick="data.preset='【脑洞占位】\\n\\n'+data.preset;save();draw();">生成脑洞</button>
+      <button onclick="data.preset+='\\n\\n【世界观占位】';save();draw();">生成世界观</button>
     `;
   }
 
-  /* 全书大纲 */
+  /* ---------- 全书大纲 ---------- */
   if(stage==="outline"){
     html+=`
       <b>全书大纲</b><br><br>
       <textarea rows="10"
-        oninput="data.outline=this.value;save();">${data.outline}</textarea><br><br>
+        oninput="data.outline=this.value;save();">${data.outline||""}</textarea><br><br>
       <button onclick="data.outline='【全书大纲占位】\\n'+data.preset;save();draw();">
         生成全书大纲
       </button>
     `;
   }
 
-  /* 卷纲 */
+  /* ---------- 卷纲 ---------- */
   if(stage==="volume"){
     html+=`
       <b>卷纲</b><br><br>
@@ -120,55 +117,71 @@ function draw(){
     });
   }
 
-  /* 章节细纲（稳定单章模式） */
+  /* ---------- 章节细纲（防崩核心） ---------- */
   if(stage==="chapter"){
     if(!data.volumes.length){
-      html+="请先创建卷。";
-    }else{
-      const v = data.volumes[currentVolume];
-      const ch = v.chapters[currentChapter];
-
-      html+=`
-        <b>章节细纲</b><br><br>
-
-        第
-        <select onchange="currentVolume=Number(this.value);currentChapter=0;save();draw();">
-          ${data.volumes.map((_,i)=>`
-            <option value="${i}" ${i===currentVolume?"selected":""}>${i+1}</option>
-          `).join("")}
-        </select>
-        卷
-
-        第
-        <select onchange="currentChapter=Number(this.value);save();draw();">
-          ${v.chapters.map((_,i)=>`
-            <option value="${i}" ${i===currentChapter?"selected":""}>${i+1}</option>
-          `).join("")}
-        </select>
-        章
-
-        <hr>
-
-        <b>章节概述</b><br>
-        <textarea rows="4"
-          oninput="ch.outline=this.value;save();">${ch.outline||""}</textarea><br><br>
-
-        <button onclick="genPoints()">根据章节概述生成剧情点</button>
-        <br><br>
-
-        <b>章节剧情点（12 点）</b><br>
-        <textarea rows="8"
-          oninput="ch.points=this.value;save();">${ch.points||""}</textarea><br><br>
-
-        <button onclick="genText()">生成正文</button>
-      `;
+      html+=`<p class="warn">请先在【卷纲】阶段创建至少一卷。</p>`;
+      app.innerHTML = html; return;
     }
+
+    const v = data.volumes[currentVolume];
+    if(!v){
+      html+=`<p class="warn">当前卷不存在，请返回【卷纲】。</p>`;
+      app.innerHTML = html; return;
+    }
+
+    if(!Array.isArray(v.chapters) || v.chapters.length===0){
+      html+=`<p class="warn">请先在【卷纲】阶段点击“根据卷简介生成章节概述”。</p>`;
+      app.innerHTML = html; return;
+    }
+
+    if(currentChapter >= v.chapters.length){
+      currentChapter = 0;
+      save();
+    }
+
+    const ch = v.chapters[currentChapter];
+
+    html+=`
+      <b>章节细纲</b><br><br>
+
+      第
+      <select onchange="currentVolume=Number(this.value);currentChapter=0;save();draw();">
+        ${data.volumes.map((_,i)=>`
+          <option value="${i}" ${i===currentVolume?"selected":""}>${i+1}</option>
+        `).join("")}
+      </select>
+      卷
+
+      第
+      <select onchange="currentChapter=Number(this.value);save();draw();">
+        ${v.chapters.map((_,i)=>`
+          <option value="${i}" ${i===currentChapter?"selected":""}>${i+1}</option>
+        `).join("")}
+      </select>
+      章
+
+      <hr>
+
+      <b>章节概述</b><br>
+      <textarea rows="4"
+        oninput="ch.outline=this.value;save();">${ch.outline||""}</textarea><br><br>
+
+      <button onclick="genPoints()">根据章节概述生成剧情点</button>
+      <br><br>
+
+      <b>章节剧情点（12 点）</b><br>
+      <textarea rows="8"
+        oninput="ch.points=this.value;save();">${ch.points||""}</textarea><br><br>
+
+      <button onclick="genText()">生成正文</button>
+    `;
   }
 
   app.innerHTML = html;
 }
 
-/* ===== 操作函数 ===== */
+/* ================= 操作函数 ================= */
 function jump(s){ stage=s; save(); draw(); }
 
 function addVolume(){
@@ -182,15 +195,16 @@ function removeVolume(){
 
 function genAllVolumeDesc(){
   data.volumes.forEach((v,i)=>{
-    v.desc=`【第 ${i+1} 卷简介占位】\\n` + data.outline;
+    v.desc=`【第 ${i+1} 卷简介占位】\\n` + (data.outline||"");
   });
   save(); draw();
 }
 
 function genChapterOutline(i){
   const v = data.volumes[i];
-  v.chapters = [];
-  for(let n=0;n<v.chapterCount;n++){
+  v.chapters=[];
+  const count = Number(v.chapterCount)||1;
+  for(let n=0;n<count;n++){
     v.chapters.push({outline:`第 ${n+1} 章概述占位`,points:"",text:""});
   }
   save(); draw();
@@ -198,7 +212,7 @@ function genChapterOutline(i){
 
 function genPoints(){
   const ch = data.volumes[currentVolume].chapters[currentChapter];
-  ch.points = "";
+  ch.points="";
   for(let i=1;i<=12;i++){
     ch.points += `剧情点 ${i}\n`;
   }
@@ -207,11 +221,12 @@ function genPoints(){
 
 function genText(){
   const ch = data.volumes[currentVolume].chapters[currentChapter];
-  ch.text = "【正文占位】\n\n" + ch.points;
+  ch.text="【正文占位】\n\n"+(ch.points||"");
   save();
   alert("正文已生成（占位），数据已保存。");
 }
 
+/* ================= 启动 ================= */
 draw();
 </script>
 
