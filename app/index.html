@@ -19,92 +19,74 @@ button{margin:4px 6px 4px 0;}
 </div>
 
 <script>
-/* ========= 安全初始化 ========= */
-var data;
-try{
-  data = JSON.parse(localStorage.getItem("cyber_data"));
-}catch(e){
-  data = null;
-}
-if(!data){
-  data = {
-    preset:"",
-    outline:"",
-    volumes:[]
-  };
-}
+/* ========= 初始化 ========= */
+var stage = localStorage.getItem("stage") || "preset";
+var currentVolume = Number(localStorage.getItem("currentVolume")) || 0;
+var data = JSON.parse(localStorage.getItem("data")) || {
+  preset: "",
+  outline: "",
+  volumes: []
+};
 
-var stage = localStorage.getItem("cyber_stage") || "preset";
-
-/* ========= 保存 ========= */
 function save(){
-  localStorage.setItem("cyber_data",JSON.stringify(data));
-  localStorage.setItem("cyber_stage",stage);
+  localStorage.setItem("stage", stage);
+  localStorage.setItem("currentVolume", currentVolume);
+  localStorage.setItem("data", JSON.stringify(data));
 }
 
 /* ========= 顶部步骤 ========= */
-function steps(){
+function drawSteps(){
   return `
-  <div style="margin-bottom:12px;">
-    <button onclick="go('preset')">前期设定</button>
-    <button onclick="go('outline')">全书大纲</button>
-    <button onclick="go('volume')">卷纲</button>
-    <button onclick="go('chapter')">章节细纲</button>
-  </div>
+    <div style="margin-bottom:12px;">
+      <button onclick="jump('preset')" style="margin-right:6px;${stage==='preset'?'background:#111;color:#fff;':'background:#eee;'}">前期设定</button>
+      <button onclick="jump('outline')" style="margin-right:6px;${stage==='outline'?'background:#111;color:#fff;':'background:#eee;'}">全书大纲</button>
+      <button onclick="jump('volume')" style="margin-right:6px;${stage==='volume'?'background:#111;color:#fff;':'background:#eee;'}">卷纲</button>
+      <button onclick="jump('chapter')" style="margin-right:6px;${stage==='chapter'?'background:#111;color:#fff;':'background:#eee;'}">章节细纲</button>
+    </div>
   `;
 }
 
-function go(s){
-  saveInput();
-  stage=s;
-  save();
-  draw();
-}
-
-/* ========= 主渲染 ========= */
+/* ========= 渲染 ========= */
 function draw(){
-  var app=document.getElementById("app");
+  var app = document.getElementById("app");
 
-  /* 前期设定 */
   if(stage==="preset"){
     app.innerHTML = `
-      ${steps()}
+      ${drawSteps()}
       <b>前期设定（脑洞 + 世界观）</b><br><br>
-      <textarea id="main" rows="12">${data.preset||""}</textarea><br>
+      <textarea id="main" rows="12">${data.preset}</textarea><br>
       <button onclick="genIdea()">生成脑洞</button>
       <button onclick="genWorld()">生成世界观</button>
     `;
     return;
   }
 
-  /* 全书大纲 */
   if(stage==="outline"){
     app.innerHTML = `
-      ${steps()}
+      ${drawSteps()}
       <b>全书大纲</b><br><br>
-      <textarea id="main" rows="12">${data.outline||""}</textarea><br>
+      <textarea id="main" rows="12">${data.outline}</textarea><br>
       <button onclick="genOutline()">生成全书大纲</button>
     `;
     return;
   }
 
-  /* 卷纲 */
   if(stage==="volume"){
     app.innerHTML = `
-      ${steps()}
+      ${drawSteps()}
       <b>卷纲</b><br><br>
       <button onclick="addVolume()">＋ 增加一卷</button>
-      <button onclick="genAllVolume()">根据全书大纲生成卷简介</button>
+      <button onclick="removeVolume()">－ 删除一卷</button>
+      <br><br>
+      <button onclick="genAllVolumeDesc()">根据全书大纲生成卷简介</button>
       <hr>
       ${data.volumes.map((v,i)=>`
-        <div style="margin-bottom:18px;">
+        <div style="margin-bottom:20px;">
           <b>第 ${i+1} 卷</b><br><br>
           卷简介：<br>
-          <textarea rows="4" oninput="vDesc(${i},this.value)">${v.desc||""}</textarea><br>
+          <textarea style="width:100%;height:56px;" oninput="updateVolumeDesc(${i},this.value)">${v.desc||""}</textarea><br><br>
           本卷章节数：
-          <input type="number" min="1" value="${v.count||10}"
-            onchange="vCount(${i},this.value)">
-          <br><br>
+          <input type="number" min="1" value="${v.chapterCount||10}" onchange="updateChapterCount(${i},this.value)"><br><br>
           <button onclick="genChapterOutline(${i})">根据卷简介生成章节概述</button>
         </div>
       `).join("")}
@@ -112,59 +94,55 @@ function draw(){
     return;
   }
 
-  /* 章节细纲（占位，结构冻结） */
   if(stage==="chapter"){
     app.innerHTML = `
-      ${steps()}
+      ${drawSteps()}
       <b>章节细纲</b><br>
-      <p>（本阶段 UI 结构已冻结，后续在此基础上补充）</p>
+      <p>（UI 已冻结，结构保持不变）</p>
     `;
   }
 }
 
-/* ========= 输入保存 ========= */
-function saveInput(){
-  var t=document.getElementById("main");
-  if(!t) return;
-  if(stage==="preset") data.preset=t.value;
-  if(stage==="outline") data.outline=t.value;
+/* ========= 通用操作 ========= */
+function jump(s){
+  var input = document.getElementById("main");
+  if(input) data[stage] = input.value;
+  stage = s;
+  save(); draw();
 }
 
-/* ========= 前期设定生成 ========= */
+/* ========= 前期设定 ========= */
 function genIdea(){
-  data.preset += (data.preset?"\n\n":"") + "【脑洞生成占位】";
+  data.preset += (data.preset ? "\n\n" : "") + "【脑洞生成占位】";
   save(); draw();
 }
 function genWorld(){
-  data.preset += (data.preset?"\n\n":"") + "【世界观生成占位】";
+  data.preset += (data.preset ? "\n\n" : "") + "【世界观生成占位】";
   save(); draw();
 }
 
-/* ========= 大纲生成 ========= */
+/* ========= 全书大纲（唯一改动点） ========= */
 function genOutline(){
-  data.outline="【全书大纲生成占位】\n\n"+(data.preset||"");
+  // ✅ 只生成占位，不带入前期设定文本
+  data.outline = "【全书大纲生成占位】";
   save(); draw();
 }
 
 /* ========= 卷纲逻辑 ========= */
-function addVolume(){
-  data.volumes.push({desc:"",count:10,chapters:[]});
-  save(); draw();
-}
-function vDesc(i,v){data.volumes[i].desc=v;save();}
-function vCount(i,v){data.volumes[i].count=Number(v);save();}
-function genAllVolume(){
-  if(!data.outline){alert("请先填写全书大纲");return;}
-  data.volumes.forEach((v,i)=>{
-    v.desc="【第 "+(i+1)+" 卷简介】\n"+data.outline;
-  });
+function addVolume(){ data.volumes.push({desc:"",chapterCount:10,chapters:[]}); save(); draw();}
+function removeVolume(){ data.volumes.pop(); save(); draw();}
+function updateVolumeDesc(i,v){ data.volumes[i].desc = v; save(); }
+function updateChapterCount(i,v){ data.volumes[i].chapterCount = Number(v); save(); }
+function genAllVolumeDesc(){
+  if(!data.outline){ alert("请先填写全书大纲"); return; }
+  data.volumes.forEach((v,i)=>{ v.desc = `【第 ${i+1} 卷简介】\n${data.outline}`; });
   save(); draw();
 }
 function genChapterOutline(i){
-  var v=data.volumes[i];
-  v.chapters=[];
-  for(var n=0;n<v.count;n++){
-    v.chapters.push("第 "+(n+1)+" 章概述（占位）");
+  var v = data.volumes[i];
+  v.chapters = [];
+  for(var n=0; n<v.chapterCount; n++){
+    v.chapters.push(`第 ${n+1} 章概述（占位）`);
   }
   save();
 }
