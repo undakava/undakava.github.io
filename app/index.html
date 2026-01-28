@@ -19,15 +19,25 @@ button{margin:4px 6px 4px 0;}
 </div>
 
 <script>
-/* ========= 初始化 ========= */
+/* ========= 初始化与安全检查 ========= */
 var stage = localStorage.getItem("stage") || "preset";
 var currentVolume = Number(localStorage.getItem("currentVolume")) || 0;
-var data = JSON.parse(localStorage.getItem("data")) || {
-  preset: "",
-  outline: "",
-  volumes: []
-};
+var data;
+try {
+  data = JSON.parse(localStorage.getItem("data"));
+} catch(e){
+  data = null;
+}
+if(!data || typeof data !== "object"){
+  data = {
+    preset: "",
+    outline: "",
+    volumes: []
+  };
+}
+if(!Array.isArray(data.volumes)) data.volumes = [];
 
+/* ========= 保存 ========= */
 function save(){
   localStorage.setItem("stage", stage);
   localStorage.setItem("currentVolume", currentVolume);
@@ -54,7 +64,7 @@ function draw(){
     app.innerHTML = `
       ${drawSteps()}
       <b>前期设定（脑洞 + 世界观）</b><br><br>
-      <textarea id="main" rows="12">${data.preset}</textarea><br>
+      <textarea id="main" rows="12">${data.preset||""}</textarea><br>
       <button onclick="genIdea()">生成脑洞</button>
       <button onclick="genWorld()">生成世界观</button>
     `;
@@ -65,7 +75,7 @@ function draw(){
     app.innerHTML = `
       ${drawSteps()}
       <b>全书大纲</b><br><br>
-      <textarea id="main" rows="12">${data.outline}</textarea><br>
+      <textarea id="main" rows="12">${data.outline||""}</textarea><br>
       <button onclick="genOutline()">生成全书大纲</button>
     `;
     return;
@@ -121,27 +131,31 @@ function genWorld(){
   save(); draw();
 }
 
-/* ========= 全书大纲（唯一改动点） ========= */
+/* ========= 全书大纲（唯一改动） ========= */
 function genOutline(){
-  // ✅ 只生成占位，不带入前期设定文本
+  // ✅ 只生成占位，不显示前期设定
   data.outline = "【全书大纲生成占位】";
   save(); draw();
 }
 
 /* ========= 卷纲逻辑 ========= */
 function addVolume(){ data.volumes.push({desc:"",chapterCount:10,chapters:[]}); save(); draw();}
-function removeVolume(){ data.volumes.pop(); save(); draw();}
-function updateVolumeDesc(i,v){ data.volumes[i].desc = v; save(); }
-function updateChapterCount(i,v){ data.volumes[i].chapterCount = Number(v); save(); }
+function removeVolume(){ if(data.volumes.length>0) data.volumes.pop(); save(); draw();}
+function updateVolumeDesc(i,v){ if(data.volumes[i]){ data.volumes[i].desc = v; save(); } }
+function updateChapterCount(i,v){ if(data.volumes[i]){ data.volumes[i].chapterCount = Number(v); save(); } }
 function genAllVolumeDesc(){
   if(!data.outline){ alert("请先填写全书大纲"); return; }
-  data.volumes.forEach((v,i)=>{ v.desc = `【第 ${i+1} 卷简介】\n${data.outline}`; });
+  data.volumes.forEach((v,i)=>{
+    if(v) v.desc = `【第 ${i+1} 卷简介】\n${data.outline}`;
+  });
   save(); draw();
 }
 function genChapterOutline(i){
   var v = data.volumes[i];
+  if(!v) return;
   v.chapters = [];
-  for(var n=0; n<v.chapterCount; n++){
+  var count = Number(v.chapterCount) || 1;
+  for(var n=0;n<count;n++){
     v.chapters.push(`第 ${n+1} 章概述（占位）`);
   }
   save();
