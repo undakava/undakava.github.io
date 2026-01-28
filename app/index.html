@@ -31,7 +31,7 @@ try {
 } catch(e) {
   data = null;
 }
-if(!data || typeof data !== "object") data = { preset:"", outline:"", volumes:[] };
+if(!data || typeof data !== "object") data = { preset:"", world:"", outline:"", volumes:[] };
 if(!Array.isArray(data.volumes)) data.volumes = [];
 
 /* ===== 保存 ===== */
@@ -41,7 +41,7 @@ function save(){
   localStorage.setItem("data", JSON.stringify(data));
 }
 
-/* ===== 清理数据按钮功能 ===== */
+/* ===== 清理数据按钮 ===== */
 function clearData(){
   localStorage.clear();
   alert('网页数据已清理，请刷新页面！');
@@ -62,16 +62,20 @@ function draw(){
   var app = document.getElementById("app");
   if(!app) return;
 
+  // ===== 前期设定阶段 =====
   if(stage==="preset"){
     app.innerHTML =
       drawSteps() +
-      '<b>前期设定（脑洞 + 世界观）</b><br><br>' +
-      '<textarea id="main" rows="12">' + (data.preset||"") + '</textarea><br>' +
-      '<button onclick="genIdea()">生成脑洞</button>' +
-      '<button onclick="genWorld()">生成世界观</button>';
+      '<b>前期设定</b><br><br>' +
+      '世界观（手写）：<br>' +
+      '<textarea id="world" rows="6">' + (data.world||"") + '</textarea><br><br>' +
+      '脑洞生成：<br>' +
+      '<textarea id="main" rows="6">' + (data.preset||"") + '</textarea><br>' +
+      '<button onclick="genIdea()">生成脑洞</button>';
     return;
   }
 
+  // ===== 全书大纲阶段 =====
   if(stage==="outline"){
     app.innerHTML =
       drawSteps() +
@@ -81,6 +85,7 @@ function draw(){
     return;
   }
 
+  // ===== 卷纲阶段 =====
   if(stage==="volume"){
     var html = drawSteps() +
       '<b>卷纲</b><br><br>' +
@@ -103,6 +108,7 @@ function draw(){
     return;
   }
 
+  // ===== 章节细纲阶段 =====
   if(stage==="chapter"){
     app.innerHTML =
       drawSteps() +
@@ -114,32 +120,31 @@ function draw(){
 
 /* ===== 通用操作 ===== */
 function jump(s){
-  var input = document.getElementById("main");
-  if(input) data[stage] = input.value;
+  // 保存前期设定阶段文本框内容
+  if(stage==="preset"){
+    var worldInput = document.getElementById("world");
+    if(worldInput) data.world = worldInput.value;
+    var ideaInput = document.getElementById("main");
+    if(ideaInput) data.preset = ideaInput.value;
+  } else {
+    var input = document.getElementById("main");
+    if(input) data[stage] = input.value;
+  }
   stage = s;
   save();
   draw();
 }
 
-/* ===== 前期设定占位规则 ===== */
+/* ===== 前期设定阶段脑洞生成规则 ===== */
 function genIdea(){
-  if(!data.preset || !data.preset.includes('脑洞生成占位')){
-    // 脑洞占位插在开头
-    data.preset = "【脑洞生成占位】" + (data.preset ? "\n\n" + data.preset : "");
+  var input = document.getElementById("main");
+  if(!input) return;
+  if(!input.value.includes('脑洞生成占位')){
+    input.value = "【脑洞生成占位】" + (input.value ? "\n\n" + input.value : "");
   }
-  save(); draw();
-}
-
-function genWorld(){
-  if(data.preset.includes('世界观生成占位')) return; // 防止重复生成
-  if(data.preset.includes('脑洞生成占位')){
-    // 在脑洞占位下插入世界观占位
-    data.preset = data.preset.replace('脑洞生成占位', '脑洞生成占位\n\n【世界观生成占位】');
-  } else {
-    // 如果脑洞占位不存在，先生成脑洞再生成世界观
-    data.preset = "【脑洞生成占位】\n\n【世界观生成占位】";
-  }
-  save(); draw();
+  data.preset = input.value;
+  save();
+  draw();
 }
 
 /* ===== 全书大纲 ===== */
