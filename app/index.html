@@ -112,12 +112,12 @@ function draw(){
     return;
   }
 
-  /* 章节细纲（结构冻结） */
+  /* 章节细纲（占位，结构冻结） */
   if(stage==="chapter"){
     app.innerHTML = `
       ${steps()}
       <b>章节细纲</b><br>
-      <p>（本阶段 UI 结构已冻结）</p>
+      <p>（本阶段 UI 结构已冻结，后续在此基础上补充）</p>
     `;
   }
 }
@@ -140,9 +140,9 @@ function genWorld(){
   save(); draw();
 }
 
-/* ========= 全书大纲生成（唯一修改点） ========= */
+/* ========= 大纲生成 ========= */
 function genOutline(){
-  data.outline = "【全书大纲生成占位】";
+  data.outline="【全书大纲生成占位】\n\n"+(data.preset||"");
   save(); draw();
 }
 
