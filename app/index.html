@@ -10,6 +10,7 @@ textarea{width:100%;box-sizing:border-box;}
 button{margin:6px 6px 6px 0;}
 .clear-btn{background:#f66;color:#fff;padding:6px 12px;border:none;border-radius:4px;}
 .section{margin:16px 0;}
+select{margin-right:8px;}
 </style>
 </head>
 <body>
@@ -89,7 +90,7 @@ function draw(){
     return;
   }
 
-  /* ===== 卷纲（按最新确认结构） ===== */
+  /* ===== 卷纲（保持不变） ===== */
   if(stage==="volume"){
     var html=drawSteps()+`
       <b>卷纲</b><br><br>
@@ -132,11 +133,55 @@ function draw(){
     return;
   }
 
-  /* ===== 章节细纲 ===== */
+  /* ===== 章节细纲（正式解冻） ===== */
   if(stage==="chapter"){
+    if(data.volumes.length===0){
+      app.innerHTML=drawSteps()+"<p>请先创建卷与章节。</p>";
+      return;
+    }
+
+    var v=data.volumes[currentVolume];
+    if(!v.chapters || v.chapters.length===0){
+      v.chapters=[{summary:"",scene:"",beats:"",text:""}];
+    }
+    var c=v.chapters[currentChapter]||v.chapters[0];
+
+    var volOptions=data.volumes.map((_,i)=>
+      `<option value="${i}" ${i===currentVolume?'selected':''}>第 ${i+1} 卷</option>`
+    ).join("");
+
+    var chapOptions=v.chapters.map((_,i)=>
+      `<option value="${i}" ${i===currentChapter?'selected':''}>第 ${i+1} 章</option>`
+    ).join("");
+
     app.innerHTML=drawSteps()+`
-      <b>章节细纲</b><br>
-      <p>（此阶段未改动）</p>
+      <b>章节细纲</b><br><br>
+
+      第
+      <select onchange="changeVolume(this.value)">${volOptions}</select>
+      卷　
+      第
+      <select onchange="changeChapter(this.value)">${chapOptions}</select>
+      章<br><br>
+
+      章节概述
+      <textarea rows="4" oninput="c.summary=this.value;save();">${c.summary||""}</textarea><br><br>
+
+      <button onclick="genScene()">场景拆分</button><br><br>
+
+      场景拆分
+      <textarea rows="4" oninput="c.scene=this.value;save();">${c.scene||""}</textarea><br><br>
+
+      <button onclick="genBeats()">生成剧情点</button><br><br>
+
+      细纲剧情点
+      <textarea rows="6" oninput="c.beats=this.value;save();">${c.beats||""}</textarea><br><br>
+
+      <button onclick="genText()">生成正文</button><br><br>
+
+      正文
+      <textarea style="height:60px;overflow:auto"
+        oninput="c.text=this.value;save();">${c.text||""}</textarea>
     `;
     return;
   }
@@ -144,13 +189,6 @@ function draw(){
 
 /* ===== 跳转 ===== */
 function jump(s){
-  if(stage==="preset"){
-    data.world=document.getElementById("world")?.value||"";
-    data.preset=document.getElementById("main")?.value||"";
-  }
-  if(stage==="outline"){
-    data.outline=document.getElementById("main")?.value||"";
-  }
   stage=s; save(); draw();
 }
 
@@ -158,14 +196,12 @@ function jump(s){
 function genIdea(){ data.preset="【脑洞生成占位】"; save(); draw(); }
 function genOutline(){ data.outline="【全书大纲生成占位】"; save(); draw(); }
 
-/* ===== 卷纲逻辑 ===== */
+/* ===== 卷纲逻辑（不变） ===== */
 function addVolume(){
   data.volumes.push({
-    desc:"",
-    characterArc:"",
-    events:"",
+    desc:"",characterArc:"",events:"",
     chapterCount:1,
-    chapters:[]
+    chapters:[{summary:"",scene:"",beats:"",text:""}]
   });
   save(); draw();
 }
@@ -173,9 +209,8 @@ function removeVolume(){
   data.volumes.pop();
   save(); draw();
 }
-function updateVolumeField(i,key,val){
-  data.volumes[i][key]=val;
-  save();
+function updateVolumeField(i,k,v){
+  data.volumes[i][k]=v; save();
 }
 function genAllVolumeDesc(){
   data.volumes.forEach((v,i)=>{
@@ -184,21 +219,26 @@ function genAllVolumeDesc(){
   save(); draw();
 }
 function genVolumeEvents(i){
-  data.volumes[i].events="【事件节点占位：起 → 承 → 转 → 合】";
+  data.volumes[i].events="【事件节点占位】";
   save(); draw();
 }
 function genChapterOutline(i){
   var v=data.volumes[i];
   v.chapters=[];
   for(let n=0;n<(v.chapterCount||1);n++){
-    v.chapters.push({
-      summary:"第"+(n+1)+"章概述",
-      scene:"",
-      beats:"",
-      text:""
-    });
+    v.chapters.push({summary:"第"+(n+1)+"章概述",scene:"",beats:"",text:""});
   }
   save();
+}
+
+/* ===== 章节细纲切换 ===== */
+function changeVolume(i){
+  currentVolume=Number(i); currentChapter=0;
+  save(); draw();
+}
+function changeChapter(i){
+  currentChapter=Number(i);
+  save(); draw();
 }
 
 /* ===== 启动 ===== */
