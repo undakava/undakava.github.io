@@ -9,6 +9,7 @@ body{font-family:sans-serif;}
 textarea{width:100%;box-sizing:border-box;}
 button{margin:4px 6px 4px 0;}
 .clear-btn{background:#f66;color:#fff;padding:6px 12px;border:none;border-radius:4px;}
+select{margin:4px 0;}
 </style>
 </head>
 <body>
@@ -16,7 +17,6 @@ button{margin:4px 6px 4px 0;}
 <h1 style="text-align:center;">十五世紀野生翻滾法則</h1>
 
 <div class="container">
-  <!-- 清理数据按钮（保留，不改） -->
   <button class="clear-btn" onclick="clearData()">清理页面存储（localStorage）</button>
   <div id="app"></div>
 </div>
@@ -25,6 +25,7 @@ button{margin:4px 6px 4px 0;}
 /* ===== 安全初始化 ===== */
 var stage = localStorage.getItem("stage") || "preset";
 var currentVolume = Number(localStorage.getItem("currentVolume")) || 0;
+var currentChapter = Number(localStorage.getItem("currentChapter")) || 0;
 var data;
 try {
   data = JSON.parse(localStorage.getItem("data"));
@@ -38,10 +39,11 @@ if(!Array.isArray(data.volumes)) data.volumes = [];
 function save(){
   localStorage.setItem("stage", stage);
   localStorage.setItem("currentVolume", currentVolume);
+  localStorage.setItem("currentChapter", currentChapter);
   localStorage.setItem("data", JSON.stringify(data));
 }
 
-/* ===== 清理数据按钮 ===== */
+/* ===== 清理 ===== */
 function clearData(){
   localStorage.clear();
   alert('网页数据已清理，请刷新页面！');
@@ -50,42 +52,42 @@ function clearData(){
 /* ===== 顶部步骤 ===== */
 function drawSteps(){
   return '<div style="margin-bottom:12px;">' +
-    '<button onclick="jump(\'preset\')" style="margin-right:6px;' + (stage==='preset'?'background:#111;color:#fff;':'background:#eee;') + '">前期设定</button>' +
-    '<button onclick="jump(\'outline\')" style="margin-right:6px;' + (stage==='outline'?'background:#111;color:#fff;':'background:#eee;') + '">全书大纲</button>' +
-    '<button onclick="jump(\'volume\')" style="margin-right:6px;' + (stage==='volume'?'background:#111;color:#fff;':'background:#eee;') + '">卷纲</button>' +
-    '<button onclick="jump(\'chapter\')" style="margin-right:6px;' + (stage==='chapter'?'background:#111;color:#fff;':'background:#eee;') + '">章节细纲</button>' +
+    '<button onclick="jump(\'preset\')" style="'+(stage==='preset'?'background:#111;color:#fff;':'')+'">前期设定</button>' +
+    '<button onclick="jump(\'outline\')" style="'+(stage==='outline'?'background:#111;color:#fff;':'')+'">全书大纲</button>' +
+    '<button onclick="jump(\'volume\')" style="'+(stage==='volume'?'background:#111;color:#fff;':'')+'">卷纲</button>' +
+    '<button onclick="jump(\'chapter\')" style="'+(stage==='chapter'?'background:#111;color:#fff;':'')+'">章节细纲</button>' +
     '</div>';
 }
 
-/* ===== 渲染页面 ===== */
+/* ===== 渲染 ===== */
 function draw(){
   var app = document.getElementById("app");
   if(!app) return;
 
-  // ===== 前期设定阶段 =====
+  /* ===== 前期设定 ===== */
   if(stage==="preset"){
     app.innerHTML =
       drawSteps() +
       '<b>前期设定</b><br><br>' +
       '世界观（手写）：<br>' +
-      '<textarea id="world" rows="6">' + (data.world||"") + '</textarea><br><br>' +
+      '<textarea id="world" rows="6">'+(data.world||"")+'</textarea><br><br>' +
       '脑洞生成：<br>' +
-      '<textarea id="main" rows="6">' + (data.preset||"") + '</textarea><br>' +
+      '<textarea id="main" rows="6">'+(data.preset||"")+'</textarea><br>' +
       '<button onclick="genIdea()">生成脑洞</button>';
     return;
   }
 
-  // ===== 全书大纲阶段 =====
+  /* ===== 全书大纲 ===== */
   if(stage==="outline"){
     app.innerHTML =
       drawSteps() +
       '<b>全书大纲</b><br><br>' +
-      '<textarea id="main" rows="12">' + (data.outline||"") + '</textarea><br>' +
+      '<textarea id="main" rows="12">'+(data.outline||"")+'</textarea><br>' +
       '<button onclick="genOutline()">生成全书大纲</button>';
     return;
   }
 
-  // ===== 卷纲阶段 =====
+  /* ===== 卷纲 ===== */
   if(stage==="volume"){
     var html = drawSteps() +
       '<b>卷纲</b><br><br>' +
@@ -96,118 +98,111 @@ function draw(){
 
     for(var i=0;i<data.volumes.length;i++){
       var v = data.volumes[i];
-      html += '<div style="margin-bottom:20px;">' +
-        '<b>第 ' + (i+1) + ' 卷</b><br><br>' +
+      html +=
+        '<b>第 '+(i+1)+' 卷</b><br>' +
         '卷简介：<br>' +
-        '<textarea style="width:100%;height:56px;" oninput="updateVolumeDesc(' + i + ',this.value)">' + (v.desc||"") + '</textarea><br><br>' +
-        '本卷章节数：<input type="number" min="1" value="' + (v.chapterCount||10) + '" onchange="updateChapterCount(' + i + ',this.value)"><br><br>' +
-        '<button onclick="genChapterOutline(' + i + ')">根据卷简介生成章节概述</button>' +
-        '</div>';
+        '<textarea oninput="updateVolumeDesc('+i+',this.value)">'+(v.desc||"")+'</textarea><br>' +
+        '本卷章节数：<input type="number" min="1" value="'+(v.chapterCount||10)+'" onchange="updateChapterCount('+i+',this.value)"><br>' +
+        '<button onclick="genChapterOutline('+i+')">根据卷简介生成章节概述</button><hr>';
     }
     app.innerHTML = html;
     return;
   }
 
-  // ===== 章节细纲阶段 =====
+  /* ===== 章节细纲（已解冻） ===== */
   if(stage==="chapter"){
-    /* ===== PATCH：单卷章节数据兜底（不解冻 UI） ===== */
-    if(data.volumes.length === 1){
-      var v = data.volumes[0];
-      if(!Array.isArray(v.chapters)){
-        v.chapters = [];
-      }
-      if(v.chapters.length === 0 && v.chapterCount){
-        for(var c=0;c<v.chapterCount;c++){
-          v.chapters.push("第 " + (c+1) + " 章概述（占位）");
-        }
-        save();
+    // PATCH：进入阶段即强制兜底初始化
+    if(data.volumes.length === 0){
+      app.innerHTML = drawSteps() + '请先在卷纲阶段创建卷';
+      return;
+    }
+    var v = data.volumes[currentVolume] || data.volumes[0];
+    currentVolume = data.volumes.indexOf(v);
+
+    if(!Array.isArray(v.chapters) || v.chapters.length === 0){
+      v.chapters = [];
+      var c = Number(v.chapterCount) || 1;
+      for(var i=0;i<c;i++){
+        v.chapters.push({ summary:'', outline:'' });
       }
     }
+    if(!v.chapters[currentChapter]) currentChapter = 0;
+    save();
 
-    app.innerHTML =
-      drawSteps() +
-      '<b>章节细纲</b><br>' +
-      '<p>（UI 已冻结，结构保持不变）</p>';
+    var html = drawSteps() +
+      '<b>章节细纲</b><br><br>' +
+
+      '选择卷：<br><select onchange="changeVolume(this.value)">';
+    for(var i=0;i<data.volumes.length;i++){
+      html += '<option value="'+i+'" '+(i===currentVolume?'selected':'')+'>第 '+(i+1)+' 卷</option>';
+    }
+    html += '</select><br><br>';
+
+    html += '选择章节：<br><select onchange="changeChapter(this.value)">';
+    for(var j=0;j<v.chapters.length;j++){
+      html += '<option value="'+j+'" '+(j===currentChapter?'selected':'')+'>第 '+(j+1)+' 章</option>';
+    }
+    html += '</select><br><br>';
+
+    var ch = v.chapters[currentChapter];
+    html +=
+      '章节概述：<br><textarea rows="4" oninput="updateChapterSummary(this.value)">'+(ch.summary||"")+'</textarea><br><br>' +
+      '章节细纲：<br><textarea rows="8" oninput="updateChapterOutline(this.value)">'+(ch.outline||"")+'</textarea>';
+
+    app.innerHTML = html;
     return;
   }
 }
 
-/* ===== 通用操作 ===== */
+/* ===== 跳转 ===== */
 function jump(s){
   if(stage==="preset"){
-    var worldInput = document.getElementById("world");
-    if(worldInput) data.world = worldInput.value;
-    var ideaInput = document.getElementById("main");
-    if(ideaInput) data.preset = ideaInput.value;
-  } else {
-    var input = document.getElementById("main");
-    if(input) data[stage] = input.value;
+    var w=document.getElementById("world"); if(w) data.world=w.value;
+    var m=document.getElementById("main"); if(m) data.preset=m.value;
+  }else{
+    var i=document.getElementById("main"); if(i) data[stage]=i.value;
   }
-  stage = s;
-  save();
-  draw();
+  stage=s; save(); draw();
 }
 
-/* ===== 前期设定阶段脑洞生成规则 ===== */
+/* ===== 生成逻辑 ===== */
 function genIdea(){
-  var input = document.getElementById("main");
-  if(!input) return;
-  if(!input.value.includes('脑洞生成占位')){
-    input.value = "【脑洞生成占位】" + (input.value ? "\n\n" + input.value : "");
+  var i=document.getElementById("main");
+  if(i && !i.value.includes("脑洞生成占位")){
+    i.value="【脑洞生成占位】"+(i.value?"\n\n"+i.value:"");
   }
-  data.preset = input.value;
-  save();
-  draw();
+  data.preset=i.value; save(); draw();
 }
-
-/* ===== 全书大纲 ===== */
-function genOutline(){
-  data.outline = "【全书大纲生成占位】";
-  save(); draw();
-}
+function genOutline(){ data.outline="【全书大纲生成占位】"; save(); draw(); }
 
 /* ===== 卷纲逻辑 ===== */
-function addVolume(){
-  data.volumes.push({desc:"",chapterCount:10,chapters:[]});
-  save(); draw();
-}
-function removeVolume(){
-  if(data.volumes.length>0) data.volumes.pop();
-  save(); draw();
-}
-function updateVolumeDesc(i,v){
-  if(!data.volumes[i]) return;
-  data.volumes[i].desc = v;
-  save();
-}
-function updateChapterCount(i,v){
-  if(!data.volumes[i]) return;
-  data.volumes[i].chapterCount = Number(v) || 1;
-  save();
-}
+function addVolume(){ data.volumes.push({desc:"",chapterCount:10,chapters:[]}); save(); draw(); }
+function removeVolume(){ data.volumes.pop(); save(); draw(); }
+function updateVolumeDesc(i,v){ data.volumes[i].desc=v; save(); }
+function updateChapterCount(i,v){ data.volumes[i].chapterCount=Number(v)||1; save(); }
 function genAllVolumeDesc(){
-  if(!data.outline){ alert("请先填写全书大纲"); return; }
-  for(var i=0;i<data.volumes.length;i++){
-    var v = data.volumes[i];
-    if(!v) continue;
-    v.desc = "【第 " + (i+1) + " 卷简介】\n" + data.outline;
-  }
+  if(!data.outline){alert("请先填写全书大纲");return;}
+  data.volumes.forEach(function(v,i){v.desc="【第 "+(i+1)+" 卷简介】\n"+data.outline;});
   save(); draw();
 }
 function genChapterOutline(i){
-  var v = data.volumes[i];
-  if(!v) return;
-  v.chapters = [];
-  var count = Number(v.chapterCount) || 1;
-  for(var n=0;n<count;n++){
-    v.chapters.push("第 " + (n+1) + " 章概述（占位）");
-  }
+  var v=data.volumes[i]; v.chapters=[];
+  for(var n=0;n<v.chapterCount;n++) v.chapters.push({summary:"",outline:""});
   save();
+}
+
+/* ===== 章节操作 ===== */
+function changeVolume(i){ currentVolume=Number(i); currentChapter=0; save(); draw(); }
+function changeChapter(i){ currentChapter=Number(i); save(); draw(); }
+function updateChapterSummary(v){
+  data.volumes[currentVolume].chapters[currentChapter].summary=v; save();
+}
+function updateChapterOutline(v){
+  data.volumes[currentVolume].chapters[currentChapter].outline=v; save();
 }
 
 /* ===== 启动 ===== */
 draw();
 </script>
-
 </body>
 </html>
