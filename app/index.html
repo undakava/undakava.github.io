@@ -2,19 +2,19 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<title>十五世紀野生翻滾法則</title>
+<title>忽略标题</title>
 <style>
 body{font-family:sans-serif;}
 .container{max-width:900px;margin:0 auto;}
 textarea{width:100%;box-sizing:border-box;}
-button{margin:4px 6px 4px 0;}
+button{margin:6px 6px 6px 0;}
 .clear-btn{background:#f66;color:#fff;padding:6px 12px;border:none;border-radius:4px;}
-select{margin:4px 0;}
+.section{margin:14px 0;}
 </style>
 </head>
 <body>
 
-<h1 style="text-align:center;">十五世紀野生翻滾法則</h1>
+<h1 style="text-align:center;">忽略标题</h1>
 
 <div class="container">
   <button class="clear-btn" onclick="clearData()">清理页面存储（localStorage）</button>
@@ -22,134 +22,148 @@ select{margin:4px 0;}
 </div>
 
 <script>
-/* ===== 安全初始化 ===== */
+/* ===== 初始化 ===== */
 var stage = localStorage.getItem("stage") || "preset";
 var currentVolume = Number(localStorage.getItem("currentVolume")) || 0;
 var currentChapter = Number(localStorage.getItem("currentChapter")) || 0;
 var data;
+
 try {
   data = JSON.parse(localStorage.getItem("data"));
-} catch(e) {
-  data = null;
+} catch(e){ data = null; }
+
+if(!data || typeof data!=="object"){
+  data = { preset:"", world:"", outline:"", volumes:[] };
 }
-if(!data || typeof data !== "object") data = { preset:"", world:"", outline:"", volumes:[] };
 if(!Array.isArray(data.volumes)) data.volumes = [];
 
 /* ===== 保存 ===== */
 function save(){
-  localStorage.setItem("stage", stage);
-  localStorage.setItem("currentVolume", currentVolume);
-  localStorage.setItem("currentChapter", currentChapter);
-  localStorage.setItem("data", JSON.stringify(data));
+  localStorage.setItem("stage",stage);
+  localStorage.setItem("currentVolume",currentVolume);
+  localStorage.setItem("currentChapter",currentChapter);
+  localStorage.setItem("data",JSON.stringify(data));
 }
 
 /* ===== 清理 ===== */
 function clearData(){
   localStorage.clear();
-  alert('网页数据已清理，请刷新页面！');
+  alert("已清理，请刷新页面");
 }
 
 /* ===== 顶部步骤 ===== */
 function drawSteps(){
-  return '<div style="margin-bottom:12px;">' +
-    '<button onclick="jump(\'preset\')" style="'+(stage==='preset'?'background:#111;color:#fff;':'')+'">前期设定</button>' +
-    '<button onclick="jump(\'outline\')" style="'+(stage==='outline'?'background:#111;color:#fff;':'')+'">全书大纲</button>' +
-    '<button onclick="jump(\'volume\')" style="'+(stage==='volume'?'background:#111;color:#fff;':'')+'">卷纲</button>' +
-    '<button onclick="jump(\'chapter\')" style="'+(stage==='chapter'?'background:#111;color:#fff;':'')+'">章节细纲</button>' +
-    '</div>';
+  return `
+  <div style="margin-bottom:12px;">
+    <button onclick="jump('preset')" ${stage==='preset'?'style="background:#111;color:#fff"':''}>前期设定</button>
+    <button onclick="jump('outline')" ${stage==='outline'?'style="background:#111;color:#fff"':''}>全书大纲</button>
+    <button onclick="jump('volume')" ${stage==='volume'?'style="background:#111;color:#fff"':''}>卷纲</button>
+    <button onclick="jump('chapter')" ${stage==='chapter'?'style="background:#111;color:#fff"':''}>章节细纲</button>
+  </div>`;
 }
 
 /* ===== 渲染 ===== */
 function draw(){
-  var app = document.getElementById("app");
+  var app=document.getElementById("app");
   if(!app) return;
 
   /* ===== 前期设定 ===== */
   if(stage==="preset"){
-    app.innerHTML =
-      drawSteps() +
-      '<b>前期设定</b><br><br>' +
-      '世界观（手写）：<br>' +
-      '<textarea id="world" rows="6">'+(data.world||"")+'</textarea><br><br>' +
-      '脑洞生成：<br>' +
-      '<textarea id="main" rows="6">'+(data.preset||"")+'</textarea><br>' +
-      '<button onclick="genIdea()">生成脑洞</button>';
+    app.innerHTML=drawSteps()+`
+      <b>前期设定</b><br><br>
+      世界观（手写）：<br>
+      <textarea id="world" rows="6">${data.world||""}</textarea><br><br>
+      脑洞生成：<br>
+      <textarea id="main" rows="6">${data.preset||""}</textarea><br>
+      <button onclick="genIdea()">生成脑洞</button>
+    `;
     return;
   }
 
   /* ===== 全书大纲 ===== */
   if(stage==="outline"){
-    app.innerHTML =
-      drawSteps() +
-      '<b>全书大纲</b><br><br>' +
-      '<textarea id="main" rows="12">'+(data.outline||"")+'</textarea><br>' +
-      '<button onclick="genOutline()">生成全书大纲</button>';
+    app.innerHTML=drawSteps()+`
+      <b>全书大纲</b><br><br>
+      <textarea id="main" rows="12">${data.outline||""}</textarea><br>
+      <button onclick="genOutline()">生成全书大纲</button>
+    `;
     return;
   }
 
   /* ===== 卷纲 ===== */
   if(stage==="volume"){
-    var html = drawSteps() +
-      '<b>卷纲</b><br><br>' +
-      '<button onclick="addVolume()">＋ 增加一卷</button>' +
-      '<button onclick="removeVolume()">－ 删除一卷</button>' +
-      '<br><br>' +
-      '<button onclick="genAllVolumeDesc()">根据全书大纲生成卷简介</button><hr>';
-
-    for(var i=0;i<data.volumes.length;i++){
-      var v = data.volumes[i];
-      html +=
-        '<b>第 '+(i+1)+' 卷</b><br>' +
-        '卷简介：<br>' +
-        '<textarea oninput="updateVolumeDesc('+i+',this.value)">'+(v.desc||"")+'</textarea><br>' +
-        '本卷章节数：<input type="number" min="1" value="'+(v.chapterCount||10)+'" onchange="updateChapterCount('+i+',this.value)"><br>' +
-        '<button onclick="genChapterOutline('+i+')">根据卷简介生成章节概述</button><hr>';
-    }
-    app.innerHTML = html;
+    var html=drawSteps()+`
+      <b>卷纲</b><br><br>
+      <button onclick="addVolume()">＋ 增加一卷</button>
+      <button onclick="removeVolume()">－ 删除一卷</button><br><br>
+      <button onclick="genAllVolumeDesc()">根据全书大纲生成卷简介</button><hr>
+    `;
+    data.volumes.forEach((v,i)=>{
+      html+=`
+        <div class="section">
+          <b>第 ${i+1} 卷</b><br><br>
+          卷简介：<br>
+          <textarea style="height:120px"
+            oninput="updateVolumeDesc(${i},this.value)">${v.desc||""}</textarea><br><br>
+          本卷章节数：
+          <input type="number" min="1" value="${v.chapterCount||1}"
+            onchange="updateChapterCount(${i},this.value)">
+          <br><br>
+          <button onclick="genChapterOutline(${i})">根据卷简介生成章节概述</button>
+        </div>`;
+    });
+    app.innerHTML=html;
     return;
   }
 
-  /* ===== 章节细纲（已解冻） ===== */
+  /* ===== 章节细纲（已解冻，按定稿） ===== */
   if(stage==="chapter"){
-    // PATCH：进入阶段即强制兜底初始化
-    if(data.volumes.length === 0){
-      app.innerHTML = drawSteps() + '请先在卷纲阶段创建卷';
+    if(!data.volumes.length){
+      app.innerHTML=drawSteps()+"请先创建卷";
       return;
     }
-    var v = data.volumes[currentVolume] || data.volumes[0];
-    currentVolume = data.volumes.indexOf(v);
-
-    if(!Array.isArray(v.chapters) || v.chapters.length === 0){
-      v.chapters = [];
-      var c = Number(v.chapterCount) || 1;
-      for(var i=0;i<c;i++){
-        v.chapters.push({ summary:'', outline:'' });
-      }
+    var v=data.volumes[currentVolume];
+    if(!v.chapters || !v.chapters.length){
+      app.innerHTML=drawSteps()+"请先在卷纲阶段生成章节概述";
+      return;
     }
-    if(!v.chapters[currentChapter]) currentChapter = 0;
-    save();
+    var c=v.chapters[currentChapter]||{};
+    app.innerHTML=drawSteps()+`
+      <b>章节细纲</b><br><br>
 
-    var html = drawSteps() +
-      '<b>章节细纲</b><br><br>' +
+      第
+      <select onchange="changeVolume(this.value)">
+        ${data.volumes.map((_,i)=>`<option value="${i}" ${i===currentVolume?'selected':''}>${i+1}</option>`).join("")}
+      </select> 卷
+      第
+      <select onchange="changeChapter(this.value)">
+        ${v.chapters.map((_,i)=>`<option value="${i}" ${i===currentChapter?'selected':''}>${i+1}</option>`).join("")}
+      </select> 章
 
-      '选择卷：<br><select onchange="changeVolume(this.value)">';
-    for(var i=0;i<data.volumes.length;i++){
-      html += '<option value="'+i+'" '+(i===currentVolume?'selected':'')+'>第 '+(i+1)+' 卷</option>';
-    }
-    html += '</select><br><br>';
+      <div class="section">
+        <b>章节概述</b>
+        <textarea rows="6">${c.summary||""}</textarea>
+        <button onclick="genScene()">场景拆分</button>
+      </div>
 
-    html += '选择章节：<br><select onchange="changeChapter(this.value)">';
-    for(var j=0;j<v.chapters.length;j++){
-      html += '<option value="'+j+'" '+(j===currentChapter?'selected':'')+'>第 '+(j+1)+' 章</option>';
-    }
-    html += '</select><br><br>';
+      <div class="section">
+        <b>场景拆分</b>
+        <textarea rows="6">${c.scene||""}</textarea>
+        <button onclick="genBeats()">生成剧情点</button>
+      </div>
 
-    var ch = v.chapters[currentChapter];
-    html +=
-      '章节概述：<br><textarea rows="4" oninput="updateChapterSummary(this.value)">'+(ch.summary||"")+'</textarea><br><br>' +
-      '章节细纲：<br><textarea rows="8" oninput="updateChapterOutline(this.value)">'+(ch.outline||"")+'</textarea>';
+      <div class="section">
+        <b>细纲剧情点（12 beats）</b>
+        <textarea rows="10">${c.beats||""}</textarea>
+        <button onclick="genText()">生成正文</button>
+      </div>
 
-    app.innerHTML = html;
+      <div class="section">
+        <b>正文</b>
+        <textarea style="height:60em;overflow-y:auto;resize:none"
+          oninput="updateText(this.value)">${c.text||""}</textarea>
+      </div>
+    `;
     return;
   }
 }
@@ -157,52 +171,71 @@ function draw(){
 /* ===== 跳转 ===== */
 function jump(s){
   if(stage==="preset"){
-    var w=document.getElementById("world"); if(w) data.world=w.value;
-    var m=document.getElementById("main"); if(m) data.preset=m.value;
-  }else{
-    var i=document.getElementById("main"); if(i) data[stage]=i.value;
+    data.world=document.getElementById("world")?.value||"";
+    data.preset=document.getElementById("main")?.value||"";
+  }
+  if(stage==="outline"){
+    data.outline=document.getElementById("main")?.value||"";
   }
   stage=s; save(); draw();
 }
 
-/* ===== 生成逻辑 ===== */
-function genIdea(){
-  var i=document.getElementById("main");
-  if(i && !i.value.includes("脑洞生成占位")){
-    i.value="【脑洞生成占位】"+(i.value?"\n\n"+i.value:"");
-  }
-  data.preset=i.value; save(); draw();
-}
+/* ===== 生成逻辑（占位，不越权） ===== */
+function genIdea(){ data.preset="【脑洞生成占位】"; save(); draw(); }
 function genOutline(){ data.outline="【全书大纲生成占位】"; save(); draw(); }
 
-/* ===== 卷纲逻辑 ===== */
-function addVolume(){ data.volumes.push({desc:"",chapterCount:10,chapters:[]}); save(); draw(); }
-function removeVolume(){ data.volumes.pop(); save(); draw(); }
-function updateVolumeDesc(i,v){ data.volumes[i].desc=v; save(); }
-function updateChapterCount(i,v){ data.volumes[i].chapterCount=Number(v)||1; save(); }
-function genAllVolumeDesc(){
-  if(!data.outline){alert("请先填写全书大纲");return;}
-  data.volumes.forEach(function(v,i){v.desc="【第 "+(i+1)+" 卷简介】\n"+data.outline;});
+function addVolume(){
+  data.volumes.push({desc:"",chapterCount:1,chapters:[]});
   save(); draw();
 }
+function removeVolume(){
+  data.volumes.pop();
+  save(); draw();
+}
+function updateVolumeDesc(i,v){ data.volumes[i].desc=v; save(); }
+function updateChapterCount(i,v){ data.volumes[i].chapterCount=Number(v)||1; save(); }
+
+function genAllVolumeDesc(){
+  data.volumes.forEach((v,i)=>v.desc="【第"+(i+1)+"卷简介】\n"+data.outline);
+  save(); draw();
+}
+
 function genChapterOutline(i){
-  var v=data.volumes[i]; v.chapters=[];
-  for(var n=0;n<v.chapterCount;n++) v.chapters.push({summary:"",outline:""});
+  var v=data.volumes[i];
+  v.chapters=[];
+  for(let n=0;n<v.chapterCount;n++){
+    v.chapters.push({summary:"第"+(n+1)+"章概述",scene:"",beats:"",text:""});
+  }
   save();
 }
 
-/* ===== 章节操作 ===== */
-function changeVolume(i){ currentVolume=Number(i); currentChapter=0; save(); draw(); }
-function changeChapter(i){ currentChapter=Number(i); save(); draw(); }
-function updateChapterSummary(v){
-  data.volumes[currentVolume].chapters[currentChapter].summary=v; save();
+/* ===== 章节细纲生成 ===== */
+function changeVolume(v){ currentVolume=Number(v); currentChapter=0; save(); draw(); }
+function changeChapter(c){ currentChapter=Number(c); save(); draw(); }
+
+function genScene(){
+  var c=data.volumes[currentVolume].chapters[currentChapter];
+  c.scene="【场景拆分占位】";
+  save(); draw();
 }
-function updateChapterOutline(v){
-  data.volumes[currentVolume].chapters[currentChapter].outline=v; save();
+function genBeats(){
+  var c=data.volumes[currentVolume].chapters[currentChapter];
+  c.beats=Array.from({length:12},(_,i)=>"Beat "+(i+1)).join("\n");
+  save(); draw();
+}
+function genText(){
+  var c=data.volumes[currentVolume].chapters[currentChapter];
+  c.text="【正文生成占位】";
+  save(); draw();
+}
+function updateText(v){
+  data.volumes[currentVolume].chapters[currentChapter].text=v;
+  save();
 }
 
 /* ===== 启动 ===== */
 draw();
 </script>
+
 </body>
 </html>
