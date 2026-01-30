@@ -1,168 +1,212 @@
 <!DOCTYPE html>
-<html lang="zh-Hant">
+<html lang="zh-CN">
 <head>
-  <meta charset="UTF-8">
-  <title>酒亂黨</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <style>
-    body {
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      margin: 16px;
-    }
-    h1 {
-      text-align: center;
-    }
-    textarea {
-      width: 100%;
-      min-height: 120px;
-      box-sizing: border-box;
-      margin-bottom: 8px;
-    }
-    select, button {
-      margin: 4px 0;
-    }
-    .stage {
-      border: 1px solid #ccc;
-      padding: 12px;
-      margin-bottom: 16px;
-    }
-    .top-bar {
-      margin-bottom: 16px;
-      text-align: right;
-    }
-  </style>
+<meta charset="UTF-8">
+<title>十五世紀野生翻滾法則</title>
+<style>
+body{font-family:sans-serif;}
+.container{max-width:900px;margin:0 auto;}
+textarea{width:100%;box-sizing:border-box;}
+button{margin:4px 6px 4px 0;}
+.clear-btn{background:#f66;color:#fff;padding:6px 12px;border:none;border-radius:4px;}
+</style>
 </head>
 <body>
 
-<h1>酒亂黨</h1>
+<h1 style="text-align:center;">十五世紀野生翻滾法則</h1>
 
-<!-- 【补丁 2】顶部清除 localStorage 按键（安全阀，永久存在） -->
-<div class="top-bar">
-  <button id="clearStorageBtn">清除 localStorage</button>
-</div>
-
-<!-- ================= A 阶段：前期设定 ================= -->
-<!-- 【补丁 1】严格恢复原始结构：世界观手写 + 脑洞生成 + 单一按钮 -->
-<div class="stage" id="stage-a">
-  <h2>前期设定</h2>
-
-  <!-- 世界观：纯手写 -->
-  <label>世界观设定（手写）：</label>
-  <textarea id="worldviewInput"></textarea>
-
-  <!-- 脑洞：生成展示 -->
-  <label>脑洞生成：</label>
-  <textarea id="ideaOutput" readonly></textarea>
-
-  <!-- 唯一按钮 -->
-  <button id="generateIdeaBtn">生成脑洞</button>
-</div>
-
-<!-- ================= 卷 / 章节选择（既有结构，不重构） ================= -->
-<div class="stage" id="stage-chapter">
-  <h2>章节细纲</h2>
-
-  <label>选择卷：</label><br>
-  <select id="volumeSelect"></select><br>
-
-  <label>选择章节：</label><br>
-  <select id="chapterSelect"></select><br>
-
-  <label>章节概述：</label>
-  <textarea id="chapterSummary"></textarea>
-
-  <label>章节剧情点：</label>
-  <textarea id="chapterOutline"></textarea>
+<div class="container">
+  <!-- 清理数据按钮（保留，不改） -->
+  <button class="clear-btn" onclick="clearData()">清理页面存储（localStorage）</button>
+  <div id="app"></div>
 </div>
 
 <script>
-/* ======================== 基础工具 ======================== */
+/* ===== 安全初始化 ===== */
+var stage = localStorage.getItem("stage") || "preset";
+var currentVolume = Number(localStorage.getItem("currentVolume")) || 0;
+var data;
+try {
+  data = JSON.parse(localStorage.getItem("data"));
+} catch(e) {
+  data = null;
+}
+if(!data || typeof data !== "object") data = { preset:"", world:"", outline:"", volumes:[] };
+if(!Array.isArray(data.volumes)) data.volumes = [];
 
-function getData() {
-  try {
-    return JSON.parse(localStorage.getItem('data')) || null;
-  } catch {
-    return null;
-  }
+/* ===== 保存 ===== */
+function save(){
+  localStorage.setItem("stage", stage);
+  localStorage.setItem("currentVolume", currentVolume);
+  localStorage.setItem("data", JSON.stringify(data));
 }
 
-function saveData(data) {
-  localStorage.setItem('data', JSON.stringify(data));
-}
-
-/* ======================== 初始化兜底 ======================== */
-
-function initDataIfNeeded() {
-  let data = getData();
-  if (!data) {
-    data = {
-      volumes: [
-        {
-          chapters: [
-            { summary: '', outline: '' }
-          ]
-        }
-      ]
-    };
-    saveData(data);
-  }
-  return data;
-}
-
-/* ======================== A 阶段逻辑（不联动） ======================== */
-
-document.getElementById('generateIdeaBtn').onclick = function () {
-  document.getElementById('ideaOutput').value = '（此处生成脑洞示例文本）';
-};
-
-/* ======================== 下拉框逻辑 ======================== */
-
-function renderVolumeSelect(data) {
-  const volSel = document.getElementById('volumeSelect');
-  volSel.innerHTML = '';
-  data.volumes.forEach((_, i) => {
-    const opt = document.createElement('option');
-    opt.value = i;
-    opt.textContent = `第 ${i + 1} 卷`;
-    volSel.appendChild(opt);
-  });
-}
-
-function renderChapterSelect(data, volIndex) {
-  const chapSel = document.getElementById('chapterSelect');
-  chapSel.innerHTML = '';
-  data.volumes[volIndex].chapters.forEach((_, i) => {
-    const opt = document.createElement('option');
-    opt.value = i;
-    opt.textContent = `第 ${i + 1} 章`;
-    chapSel.appendChild(opt);
-  });
-}
-
-/* ======================== 【补丁 3】关键修复点 ======================== */
-/* 无论卷是否变化，进入页面时强制初始化章节下拉框 */
-
-function forceInitChapterSelect() {
-  const data = initDataIfNeeded();
-  renderVolumeSelect(data);
-  renderChapterSelect(data, 0); // 强制初始化
-}
-
-document.getElementById('volumeSelect').onchange = function () {
-  const data = initDataIfNeeded();
-  renderChapterSelect(data, Number(this.value));
-};
-
-/* ======================== 清除 localStorage ======================== */
-
-document.getElementById('clearStorageBtn').onclick = function () {
+/* ===== 清理数据按钮 ===== */
+function clearData(){
   localStorage.clear();
-  location.reload();
-};
+  alert('网页数据已清理，请刷新页面！');
+}
 
-/* ======================== 页面启动 ======================== */
+/* ===== 顶部步骤 ===== */
+function drawSteps(){
+  return '<div style="margin-bottom:12px;">' +
+    '<button onclick="jump(\'preset\')" style="margin-right:6px;' + (stage==='preset'?'background:#111;color:#fff;':'background:#eee;') + '">前期设定</button>' +
+    '<button onclick="jump(\'outline\')" style="margin-right:6px;' + (stage==='outline'?'background:#111;color:#fff;':'background:#eee;') + '">全书大纲</button>' +
+    '<button onclick="jump(\'volume\')" style="margin-right:6px;' + (stage==='volume'?'background:#111;color:#fff;':'background:#eee;') + '">卷纲</button>' +
+    '<button onclick="jump(\'chapter\')" style="margin-right:6px;' + (stage==='chapter'?'background:#111;color:#fff;':'background:#eee;') + '">章节细纲</button>' +
+    '</div>';
+}
 
-forceInitChapterSelect();
+/* ===== 渲染页面 ===== */
+function draw(){
+  var app = document.getElementById("app");
+  if(!app) return;
+
+  // ===== 前期设定阶段 =====
+  if(stage==="preset"){
+    app.innerHTML =
+      drawSteps() +
+      '<b>前期设定</b><br><br>' +
+      '世界观（手写）：<br>' +
+      '<textarea id="world" rows="6">' + (data.world||"") + '</textarea><br><br>' +
+      '脑洞生成：<br>' +
+      '<textarea id="main" rows="6">' + (data.preset||"") + '</textarea><br>' +
+      '<button onclick="genIdea()">生成脑洞</button>';
+    return;
+  }
+
+  // ===== 全书大纲阶段 =====
+  if(stage==="outline"){
+    app.innerHTML =
+      drawSteps() +
+      '<b>全书大纲</b><br><br>' +
+      '<textarea id="main" rows="12">' + (data.outline||"") + '</textarea><br>' +
+      '<button onclick="genOutline()">生成全书大纲</button>';
+    return;
+  }
+
+  // ===== 卷纲阶段 =====
+  if(stage==="volume"){
+    var html = drawSteps() +
+      '<b>卷纲</b><br><br>' +
+      '<button onclick="addVolume()">＋ 增加一卷</button>' +
+      '<button onclick="removeVolume()">－ 删除一卷</button>' +
+      '<br><br>' +
+      '<button onclick="genAllVolumeDesc()">根据全书大纲生成卷简介</button><hr>';
+
+    for(var i=0;i<data.volumes.length;i++){
+      var v = data.volumes[i];
+      html += '<div style="margin-bottom:20px;">' +
+        '<b>第 ' + (i+1) + ' 卷</b><br><br>' +
+        '卷简介：<br>' +
+        '<textarea style="width:100%;height:56px;" oninput="updateVolumeDesc(' + i + ',this.value)">' + (v.desc||"") + '</textarea><br><br>' +
+        '本卷章节数：<input type="number" min="1" value="' + (v.chapterCount||10) + '" onchange="updateChapterCount(' + i + ',this.value)"><br><br>' +
+        '<button onclick="genChapterOutline(' + i + ')">根据卷简介生成章节概述</button>' +
+        '</div>';
+    }
+    app.innerHTML = html;
+    return;
+  }
+
+  // ===== 章节细纲阶段 =====
+  if(stage==="chapter"){
+    /* ===== PATCH：单卷章节数据兜底（不解冻 UI） ===== */
+    if(data.volumes.length === 1){
+      var v = data.volumes[0];
+      if(!Array.isArray(v.chapters)){
+        v.chapters = [];
+      }
+      if(v.chapters.length === 0 && v.chapterCount){
+        for(var c=0;c<v.chapterCount;c++){
+          v.chapters.push("第 " + (c+1) + " 章概述（占位）");
+        }
+        save();
+      }
+    }
+
+    app.innerHTML =
+      drawSteps() +
+      '<b>章节细纲</b><br>' +
+      '<p>（UI 已冻结，结构保持不变）</p>';
+    return;
+  }
+}
+
+/* ===== 通用操作 ===== */
+function jump(s){
+  if(stage==="preset"){
+    var worldInput = document.getElementById("world");
+    if(worldInput) data.world = worldInput.value;
+    var ideaInput = document.getElementById("main");
+    if(ideaInput) data.preset = ideaInput.value;
+  } else {
+    var input = document.getElementById("main");
+    if(input) data[stage] = input.value;
+  }
+  stage = s;
+  save();
+  draw();
+}
+
+/* ===== 前期设定阶段脑洞生成规则 ===== */
+function genIdea(){
+  var input = document.getElementById("main");
+  if(!input) return;
+  if(!input.value.includes('脑洞生成占位')){
+    input.value = "【脑洞生成占位】" + (input.value ? "\n\n" + input.value : "");
+  }
+  data.preset = input.value;
+  save();
+  draw();
+}
+
+/* ===== 全书大纲 ===== */
+function genOutline(){
+  data.outline = "【全书大纲生成占位】";
+  save(); draw();
+}
+
+/* ===== 卷纲逻辑 ===== */
+function addVolume(){
+  data.volumes.push({desc:"",chapterCount:10,chapters:[]});
+  save(); draw();
+}
+function removeVolume(){
+  if(data.volumes.length>0) data.volumes.pop();
+  save(); draw();
+}
+function updateVolumeDesc(i,v){
+  if(!data.volumes[i]) return;
+  data.volumes[i].desc = v;
+  save();
+}
+function updateChapterCount(i,v){
+  if(!data.volumes[i]) return;
+  data.volumes[i].chapterCount = Number(v) || 1;
+  save();
+}
+function genAllVolumeDesc(){
+  if(!data.outline){ alert("请先填写全书大纲"); return; }
+  for(var i=0;i<data.volumes.length;i++){
+    var v = data.volumes[i];
+    if(!v) continue;
+    v.desc = "【第 " + (i+1) + " 卷简介】\n" + data.outline;
+  }
+  save(); draw();
+}
+function genChapterOutline(i){
+  var v = data.volumes[i];
+  if(!v) return;
+  v.chapters = [];
+  var count = Number(v.chapterCount) || 1;
+  for(var n=0;n<count;n++){
+    v.chapters.push("第 " + (n+1) + " 章概述（占位）");
+  }
+  save();
+}
+
+/* ===== 启动 ===== */
+draw();
 </script>
 
 </body>
