@@ -90,7 +90,7 @@ function draw(){
     return;
   }
 
-  /* ===== 卷纲（保持不变） ===== */
+  /* ===== 卷纲 ===== */
   if(stage==="volume"){
     var html=drawSteps()+`
       <b>卷纲</b><br><br>
@@ -133,7 +133,7 @@ function draw(){
     return;
   }
 
-  /* ===== 章节细纲（正式解冻） ===== */
+  /* ===== 章节细纲 ===== */
   if(stage==="chapter"){
     if(data.volumes.length===0){
       app.innerHTML=drawSteps()+"<p>请先创建卷与章节。</p>";
@@ -180,7 +180,7 @@ function draw(){
       <button onclick="genText()">生成正文</button><br><br>
 
       正文
-      <textarea style="height:60px;overflow:auto"
+      <textarea style="height:800px;overflow:auto"
         oninput="c.text=this.value;save();">${c.text||""}</textarea>
     `;
     return;
@@ -188,15 +188,13 @@ function draw(){
 }
 
 /* ===== 跳转 ===== */
-function jump(s){
-  stage=s; save(); draw();
-}
+function jump(s){ stage=s; save(); draw(); }
 
 /* ===== 占位生成 ===== */
 function genIdea(){ data.preset="【脑洞生成占位】"; save(); draw(); }
 function genOutline(){ data.outline="【全书大纲生成占位】"; save(); draw(); }
 
-/* ===== 卷纲逻辑（不变） ===== */
+/* ===== 卷纲逻辑 ===== */
 function addVolume(){
   data.volumes.push({
     desc:"",characterArc:"",events:"",
@@ -205,13 +203,8 @@ function addVolume(){
   });
   save(); draw();
 }
-function removeVolume(){
-  data.volumes.pop();
-  save(); draw();
-}
-function updateVolumeField(i,k,v){
-  data.volumes[i][k]=v; save();
-}
+function removeVolume(){ data.volumes.pop(); save(); draw(); }
+function updateVolumeField(i,k,v){ data.volumes[i][k]=v; save(); }
 function genAllVolumeDesc(){
   data.volumes.forEach((v,i)=>{
     v.desc="【第"+(i+1)+"卷简介】\n"+(data.outline||"");
@@ -231,15 +224,44 @@ function genChapterOutline(i){
   save();
 }
 
-/* ===== 章节细纲切换 ===== */
-function changeVolume(i){
-  currentVolume=Number(i); currentChapter=0;
-  save(); draw();
+/* ===== 章节细纲生成占位 ===== */
+function genScene(){
+  var c=data.volumes[currentVolume].chapters[currentChapter];
+  if(!c.scene){
+    c.scene="【场景拆分占位】\n- 场景一\n- 场景二\n- 场景三";
+    save(); draw();
+  }
 }
-function changeChapter(i){
-  currentChapter=Number(i);
-  save(); draw();
+function genBeats(){
+  var c=data.volumes[currentVolume].chapters[currentChapter];
+  if(!c.beats){
+    c.beats=`【细纲剧情点（12 beats）】
+1.
+2.
+3.
+4.
+5.
+6.
+7.
+8.
+9.
+10.
+11.
+12.`;
+    save(); draw();
+  }
 }
+function genText(){
+  var c=data.volumes[currentVolume].chapters[currentChapter];
+  if(!c.text){
+    c.text="【正文生成占位】\n\n（此处将来由模型生成正文）";
+    save(); draw();
+  }
+}
+
+/* ===== 切换 ===== */
+function changeVolume(i){ currentVolume=Number(i); currentChapter=0; save(); draw(); }
+function changeChapter(i){ currentChapter=Number(i); save(); draw(); }
 
 /* ===== 启动 ===== */
 draw();
