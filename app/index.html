@@ -57,6 +57,7 @@ function drawSteps(){
   <div style="margin-bottom:12px;">
     <button onclick="jump('preset')" ${stage==='preset'?'style="background:#111;color:#fff"':''}>前期设定</button>
     <button onclick="jump('outline')" ${stage==='outline'?'style="background:#111;color:#fff"':''}>全书大纲</button>
+    <button onclick="jump('characters')" ${stage==='characters'?'style="background:#111;color:#fff"':''}>角色库</button>
     <button onclick="jump('volume')" ${stage==='volume'?'style="background:#111;color:#fff"':''}>卷纲</button>
     <button onclick="jump('chapter')" ${stage==='chapter'?'style="background:#111;color:#fff"':''}>章节细纲</button>
   </div>`;
@@ -86,6 +87,15 @@ function draw(){
       <b>全书大纲</b><br><br>
       <textarea id="main" rows="12">${data.outline||""}</textarea><br>
       <button onclick="genOutline()">生成全书大纲</button>
+    `;
+    return;
+  }
+
+  /* ===== 角色库（占位，不做任何事） ===== */
+  if(stage==="characters"){
+    app.innerHTML=drawSteps()+`
+      <b>角色库</b><br><br>
+      <p>（此阶段尚未配置角色卡）</p>
     `;
     return;
   }
