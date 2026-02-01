@@ -9,7 +9,6 @@ body{font-family:sans-serif;}
 textarea{box-sizing:border-box;}
 button{margin:6px 6px 6px 0;}
 .clear-btn{background:#f66;color:#fff;padding:6px 12px;border:none;border-radius:4px;}
-.section{margin:16px 0;}
 select{margin-right:8px;}
 
 .small{
@@ -35,8 +34,6 @@ select{margin-right:8px;}
 <script>
 /* ===== 初始化 ===== */
 var stage = localStorage.getItem("stage") || "preset";
-var currentVolume = Number(localStorage.getItem("currentVolume")) || 0;
-var currentChapter = Number(localStorage.getItem("currentChapter")) || 0;
 var currentCharacter = Number(localStorage.getItem("currentCharacter")) || 0;
 var data;
 
@@ -46,14 +43,11 @@ catch(e){ data = null; }
 if(!data || typeof data!=="object"){
   data = { preset:"", world:"", outline:"", characters:[], volumes:[] };
 }
-if(!Array.isArray(data.volumes)) data.volumes=[];
 if(!Array.isArray(data.characters)) data.characters=[];
 
 /* ===== 保存 ===== */
 function save(){
   localStorage.setItem("stage",stage);
-  localStorage.setItem("currentVolume",currentVolume);
-  localStorage.setItem("currentChapter",currentChapter);
   localStorage.setItem("currentCharacter",currentCharacter);
   localStorage.setItem("data",JSON.stringify(data));
 }
@@ -90,16 +84,16 @@ function draw(){
       });
     }
 
-    var c=data.characters[currentCharacter]||data.characters[0];
+    var c = data.characters[currentCharacter];
 
-    var options=data.characters.map((ch,i)=>{
+    var options = data.characters.map((ch,i)=>{
       var label = ch.name && ch.name.trim()
         ? ch.name.trim()
         : "角色" + (i+1);
       return `<option value="${i}" ${i===currentCharacter?'selected':''}>${label}</option>`;
     }).join("");
 
-    app.innerHTML=drawSteps()+`
+    app.innerHTML = drawSteps()+`
       <b>角色库</b><br><br>
 
       <button onclick="addCharacter()">＋ 新增角色</button>
@@ -110,27 +104,38 @@ function draw(){
       <hr>
 
       姓名<br>
-      <textarea class="small" oninput="c.name=this.value;save();draw()">${c.name||""}</textarea><br><br>
+      <textarea class="small"
+        oninput="data.characters[currentCharacter].name=this.value;save();draw()"
+      >${c.name||""}</textarea><br><br>
 
       角色重要性<br>
-      <textarea class="small" oninput="c.importance=this.value;save()">${c.importance||""}</textarea><br><br>
+      <textarea class="small"
+        oninput="data.characters[currentCharacter].importance=this.value;save()"
+      >${c.importance||""}</textarea><br><br>
 
       性格<br>
-      <textarea class="small" oninput="c.personality=this.value;save()">${c.personality||""}</textarea><br><br>
+      <textarea class="small"
+        oninput="data.characters[currentCharacter].personality=this.value;save()"
+      >${c.personality||""}</textarea><br><br>
 
       身份<br>
-      <textarea class="medium" oninput="c.identity=this.value;save()">${c.identity||""}</textarea><br><br>
+      <textarea class="medium"
+        oninput="data.characters[currentCharacter].identity=this.value;save()"
+      >${c.identity||""}</textarea><br><br>
 
       核心关系<br>
-      <textarea class="medium" oninput="c.relations=this.value;save()">${c.relations||""}</textarea><br><br>
+      <textarea class="medium"
+        oninput="data.characters[currentCharacter].relations=this.value;save()"
+      >${c.relations||""}</textarea><br><br>
 
       人物特性（擅长 / 弱点 / 限制）<br>
-      <textarea class="medium" oninput="c.traits=this.value;save()">${c.traits||""}</textarea>
+      <textarea class="medium"
+        oninput="data.characters[currentCharacter].traits=this.value;save()"
+      >${c.traits||""}</textarea>
     `;
     return;
   }
 
-  /* ===== 其他阶段保持不变 ===== */
   app.innerHTML = drawSteps() + "<p>（此阶段保持不变）</p>";
 }
 
@@ -140,18 +145,20 @@ function addCharacter(){
     name:"",importance:"",identity:"",
     personality:"",relations:"",traits:""
   });
-  currentCharacter=data.characters.length-1;
+  currentCharacter = data.characters.length - 1;
   save(); draw();
 }
+
 function removeCharacter(){
   if(data.characters.length>0){
     data.characters.splice(currentCharacter,1);
-    currentCharacter=Math.max(0,currentCharacter-1);
+    currentCharacter = Math.max(0,currentCharacter-1);
     save(); draw();
   }
 }
+
 function changeCharacter(i){
-  currentCharacter=Number(i);
+  currentCharacter = Number(i);
   save(); draw();
 }
 
