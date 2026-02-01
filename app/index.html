@@ -6,11 +6,14 @@
 <style>
 body{font-family:sans-serif;}
 .container{max-width:900px;margin:0 auto;}
-textarea{width:100%;box-sizing:border-box;}
+textarea{box-sizing:border-box;}
 button{margin:6px 6px 6px 0;}
 .clear-btn{background:#f66;color:#fff;padding:6px 12px;border:none;border-radius:4px;}
 .section{margin:16px 0;}
 select{margin-right:8px;}
+.char-text{
+  width:20em;
+}
 </style>
 </head>
 <body>
@@ -36,7 +39,6 @@ catch(e){ data = null; }
 if(!data || typeof data!=="object"){
   data = { preset:"", world:"", outline:"", volumes:[], characters:[] };
 }
-
 if(!Array.isArray(data.volumes)) data.volumes=[];
 if(!Array.isArray(data.characters)) data.characters=[];
 
@@ -72,29 +74,46 @@ function draw(){
   var app=document.getElementById("app");
   if(!app) return;
 
-  /* ===== 角色库 ===== */
+  /* ===== 前期设定 ===== */
+  if(stage==="preset"){
+    app.innerHTML=drawSteps()+`
+      <b>前期设定</b><br><br>
+      世界观（手写）：<br>
+      <textarea rows="6">${data.world||""}</textarea><br><br>
+      脑洞生成：<br>
+      <textarea rows="6">${data.preset||""}</textarea>
+    `;
+    return;
+  }
+
+  /* ===== 全书大纲 ===== */
+  if(stage==="outline"){
+    app.innerHTML=drawSteps()+`
+      <b>全书大纲</b><br><br>
+      <textarea rows="12">${data.outline||""}</textarea>
+    `;
+    return;
+  }
+
+  /* ===== 角色库（定稿 UI 落位） ===== */
   if(stage==="characters"){
 
     if(data.characters.length===0){
       data.characters.push({
         name:"角色1",
-        importance:"",
         identity:"",
-        personality:"",
-        appearance:"",
-        background:"",
-        note:""
+        personality:""
       });
       currentCharacter=0;
       save();
     }
 
-    var c = data.characters[currentCharacter];
+    var c=data.characters[currentCharacter];
 
-    app.innerHTML = drawSteps()+`
+    app.innerHTML=drawSteps()+`
       <b>角色库</b><br><br>
 
-      <button onclick="addCharacter()">＋ 新角色</button>
+      <button onclick="addCharacter()">＋ 增加角色</button>
       <button onclick="removeCharacter()">－ 删除角色</button>
       <br><br>
 
@@ -103,35 +122,28 @@ function draw(){
         ${data.characters.map((r,i)=>`
           <option value="${i}" ${i===currentCharacter?'selected':''}>
             ${r.name||('角色'+(i+1))}
-          </option>`).join("")}
+          </option>
+        `).join("")}
       </select>
 
       <hr>
 
-      名字
-      <textarea rows="2" oninput="c.name=this.value;save();">${c.name||""}</textarea><br><br>
+      名字<br>
+      <textarea class="char-text" rows="2"
+        oninput="c.name=this.value;save();">${c.name||""}</textarea><br><br>
 
-      身份
-      <textarea rows="2" oninput="c.identity=this.value;save();">${c.identity||""}</textarea><br><br>
+      身份<br>
+      <textarea class="char-text" rows="2"
+        oninput="c.identity=this.value;save();">${c.identity||""}</textarea><br><br>
 
-      性格
-      <textarea rows="2" oninput="c.personality=this.value;save();">${c.personality||""}</textarea><br><br>
-
-      外貌
-      <textarea rows="3" oninput="c.appearance=this.value;save();">${c.appearance||""}</textarea><br><br>
-
-      背景
-      <textarea rows="4" oninput="c.background=this.value;save();">${c.background||""}</textarea><br><br>
-
-      备注
-      <textarea rows="3" oninput="c.note=this.value;save();">${c.note||""}</textarea>
+      性格<br>
+      <textarea class="char-text" rows="2"
+        oninput="c.personality=this.value;save();">${c.personality||""}</textarea>
     `;
     return;
   }
 
-  /* ===== 其余阶段保持不变 ===== */
-  /* ——你给的稳定代码原样保留—— */
-
+  /* ===== 卷纲 / 章节细纲 ===== */
   app.innerHTML = drawSteps()+`<p>请选择阶段</p>`;
 }
 
@@ -139,12 +151,8 @@ function draw(){
 function addCharacter(){
   data.characters.push({
     name:"角色"+(data.characters.length+1),
-    importance:"",
     identity:"",
-    personality:"",
-    appearance:"",
-    background:"",
-    note:""
+    personality:""
   });
   currentCharacter=data.characters.length-1;
   save(); draw();
