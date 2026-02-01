@@ -91,7 +91,7 @@ function draw(){
     return;
   }
 
-  /* ===== 角色库（占位，不做任何事） ===== */
+  /* ===== 角色库（占位） ===== */
   if(stage==="characters"){
     app.innerHTML=drawSteps()+`
       <b>角色库</b><br><br>
@@ -100,50 +100,84 @@ function draw(){
     return;
   }
 
-  /* ===== 卷纲 ===== */
+  /* ===== 卷纲（已按定稿 UI 重构） ===== */
   if(stage==="volume"){
-    var html=drawSteps()+`
+    var html = drawSteps()+`
       <b>卷纲</b><br><br>
+
       <button onclick="addVolume()">＋ 增加一卷</button>
-      <button onclick="removeVolume()">－ 删除一卷</button><br><br>
-      <button onclick="genAllVolumeDesc()">根据全书大纲生成卷简介</button>
+      <button onclick="removeVolume()">－ 减少一卷</button>
+      <br><br>
+
+      <button onclick="genAllVolumeDesc()">生成卷简介</button>
+      <br><br>
+
+      当前工作卷：
+      <select onchange="changeVolume(this.value)">
+        ${data.volumes.map((_,i)=>`
+          <option value="${i}" ${i===currentVolume?'selected':''}>第 ${i+1} 卷</option>
+        `).join("")}
+      </select>
+
       <hr>
     `;
 
-    data.volumes.forEach((v,i)=>{
-      html+=`
+    var v = data.volumes[currentVolume];
+    if(!v){
+      app.innerHTML = html + "<p>请先创建卷。</p>";
+      return;
+    }
+
+    html += `
       <div class="section">
-        <b>第 ${i+1} 卷</b><br><br>
+        <b>第 ${currentVolume+1} 卷</b><br><br>
 
         卷简介
         <textarea style="height:120px"
-          oninput="updateVolumeField(${i},'desc',this.value)">${v.desc||""}</textarea><br><br>
+          oninput="updateVolumeField(${currentVolume},'desc',this.value)">${v.desc||""}</textarea><br><br>
 
-        主要角色弧光
+        主要人物弧光
         <textarea style="height:90px"
-          oninput="updateVolumeField(${i},'characterArc',this.value)">${v.characterArc||""}</textarea><br><br>
+          oninput="updateVolumeField(${currentVolume},'characterArc',this.value)">${v.characterArc||""}</textarea><br><br>
 
-        <button onclick="genVolumeEvents(${i})">生成事件节点</button><br><br>
+        卷初状态
+        <textarea style="height:70px"
+          oninput="updateVolumeField(${currentVolume},'startState',this.value)">${v.startState||""}</textarea><br><br>
+
+        <button onclick="genVolumeGoal(${currentVolume})">生成目标计划</button><br><br>
+
+        卷初目标计划
+        <textarea style="height:70px"
+          oninput="updateVolumeField(${currentVolume},'goal',this.value)">${v.goal||""}</textarea><br><br>
+
+        <hr>
+
+        <button onclick="genVolumeEvents(${currentVolume})">生成事件节点</button><br><br>
 
         事件节点
         <textarea style="height:110px"
-          oninput="updateVolumeField(${i},'events',this.value)">${v.events||""}</textarea><br><br>
+          oninput="updateVolumeField(${currentVolume},'events',this.value)">${v.events||""}</textarea><br><br>
+
+        卷末状态结算
+        <textarea style="height:70px"
+          oninput="updateVolumeField(${currentVolume},'endState',this.value)">${v.endState||""}</textarea><br><br>
+
+        <hr>
 
         章节数：
         <input type="number" min="1" value="${v.chapterCount||1}"
-          onchange="updateVolumeField(${i},'chapterCount',this.value)">
+          onchange="updateVolumeField(${currentVolume},'chapterCount',this.value)">
         <br><br>
 
-        <button onclick="genChapterOutline(${i})">生成章节概述</button>
+        <button onclick="genChapterOutline(${currentVolume})">生成章节概述</button>
       </div>
-      <hr>`;
-    });
+    `;
 
-    app.innerHTML=html;
+    app.innerHTML = html;
     return;
   }
 
-  /* ===== 章节细纲 ===== */
+  /* ===== 章节细纲（保持原样） ===== */
   if(stage==="chapter"){
     if(data.volumes.length===0){
       app.innerHTML=drawSteps()+"<p>请先创建卷与章节。</p>";
@@ -190,7 +224,7 @@ function draw(){
       <button onclick="genText()">生成正文</button><br><br>
 
       正文
-      <textarea style="height:800px;overflow:auto"
+      <textarea style="height:600px;overflow:auto"
         oninput="c.text=this.value;save();">${c.text||""}</textarea>
     `;
     return;
@@ -207,24 +241,47 @@ function genOutline(){ data.outline="【全书大纲生成占位】"; save(); dr
 /* ===== 卷纲逻辑 ===== */
 function addVolume(){
   data.volumes.push({
-    desc:"",characterArc:"",events:"",
+    desc:"",
+    characterArc:"",
+    startState:"",
+    goal:"",
+    events:"",
+    endState:"",
     chapterCount:1,
     chapters:[{summary:"",scene:"",beats:"",text:""}]
   });
+  currentVolume = data.volumes.length-1;
   save(); draw();
 }
-function removeVolume(){ data.volumes.pop(); save(); draw(); }
+function removeVolume(){
+  if(data.volumes.length>0){
+    data.volumes.pop();
+    currentVolume=Math.max(0,currentVolume-1);
+  }
+  save(); draw();
+}
 function updateVolumeField(i,k,v){ data.volumes[i][k]=v; save(); }
+
 function genAllVolumeDesc(){
   data.volumes.forEach((v,i)=>{
     v.desc="【第"+(i+1)+"卷简介】\n"+(data.outline||"");
   });
   save(); draw();
 }
-function genVolumeEvents(i){
-  data.volumes[i].events="【事件节点占位】";
+
+function genVolumeGoal(i){
+  var v=data.volumes[i];
+  v.goal="【卷初目标计划占位】";
   save(); draw();
 }
+
+function genVolumeEvents(i){
+  var v=data.volumes[i];
+  v.events="【事件节点占位】";
+  v.endState="【卷末状态结算占位】";
+  save(); draw();
+}
+
 function genChapterOutline(i){
   var v=data.volumes[i];
   v.chapters=[];
@@ -238,33 +295,21 @@ function genChapterOutline(i){
 function genScene(){
   var c=data.volumes[currentVolume].chapters[currentChapter];
   if(!c.scene){
-    c.scene="【场景拆分占位】\n- 场景一\n- 场景二\n- 场景三";
+    c.scene="【场景拆分占位】";
     save(); draw();
   }
 }
 function genBeats(){
   var c=data.volumes[currentVolume].chapters[currentChapter];
   if(!c.beats){
-    c.beats=`【细纲剧情点（12 beats）】
-1.
-2.
-3.
-4.
-5.
-6.
-7.
-8.
-9.
-10.
-11.
-12.`;
+    c.beats="【细纲剧情点占位】";
     save(); draw();
   }
 }
 function genText(){
   var c=data.volumes[currentVolume].chapters[currentChapter];
   if(!c.text){
-    c.text="【正文生成占位】\n\n（此处将来由模型生成正文）";
+    c.text="【正文生成占位】";
     save(); draw();
   }
 }
