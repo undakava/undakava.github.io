@@ -80,7 +80,8 @@ function draw(){
       世界观（手写）：<br>
       <textarea rows="6" oninput="data.world=this.value;save();">${data.world||""}</textarea><br><br>
       脑洞生成：<br>
-      <textarea rows="6" oninput="data.preset=this.value;save();">${data.preset||""}</textarea>
+      <textarea rows="6" oninput="data.preset=this.value;save();">${data.preset||""}</textarea><br>
+      <button onclick="genIdea()">生成脑洞</button>
     `;
     return;
   }
@@ -89,7 +90,8 @@ function draw(){
   if(stage==="outline"){
     app.innerHTML=drawSteps()+`
       <b>全书大纲</b><br><br>
-      <textarea rows="60" oninput="data.outline=this.value;save();">${data.outline||""}</textarea>
+      <textarea rows="60" oninput="data.outline=this.value;save();">${data.outline||""}</textarea><br>
+      <button onclick="genOutline()">生成全书大纲</button>
     `;
     return;
   }
@@ -97,19 +99,18 @@ function draw(){
   /* ===== 角色库 ===== */
   if(stage==="characters"){
     if(data.characters.length===0){
-      data.characters.push({name:"",importance:"",personality:"",identity:"",relations:"",traits:""});
+      data.characters.push({name:"",importance:"",identity:"",personality:"",relations:"",traits:""});
     }
     var c=data.characters[currentCharacter];
-
     var options=data.characters.map((ch,i)=>{
-      return `<option value="${i}" ${i===currentCharacter?'selected':''}>${ch.name||("角色"+(i+1))}</option>`;
+      var label=ch.name&&ch.name.trim()?ch.name.trim():"角色"+(i+1);
+      return `<option value="${i}" ${i===currentCharacter?'selected':''}>${label}</option>`;
     }).join("");
 
     app.innerHTML=drawSteps()+`
       <b>角色库</b><br><br>
       <button onclick="addCharacter()">＋ 新增角色</button>
       <button onclick="removeCharacter()">－ 删除角色</button><br><br>
-
       当前角色：
       <select onchange="changeCharacter(this.value)">${options}</select>
       <hr>
@@ -129,7 +130,7 @@ function draw(){
       核心关系<br>
       <textarea class="medium" oninput="c.relations=this.value;save();">${c.relations||""}</textarea><br><br>
 
-      人物特性<br>
+      人物特性（擅长 / 弱点 / 限制）<br>
       <textarea class="medium" oninput="c.traits=this.value;save();">${c.traits||""}</textarea>
     `;
     return;
@@ -137,54 +138,41 @@ function draw(){
 
   /* ===== 卷纲 ===== */
   if(stage==="volume"){
-    if(data.volumes.length===0){
-      data.volumes.push({
-        desc:"",characterArc:"",startState:"",goal:"",
-        events:"",endState:"",chapterCount:1,
-        chapters:[{summary:"",scene:"",beats:"",text:""}]
-      });
-    }
-
-    var v=data.volumes[currentVolume];
-
-    app.innerHTML=drawSteps()+`
+    var html=drawSteps()+`
       <b>卷纲</b><br><br>
       <button onclick="addVolume()">＋ 增加一卷</button>
       <button onclick="removeVolume()">－ 减少一卷</button><br><br>
-
-      当前卷：
+      当前工作卷：
       <select onchange="changeVolume(this.value)">
         ${data.volumes.map((_,i)=>`<option value="${i}" ${i===currentVolume?'selected':''}>第 ${i+1} 卷</option>`).join("")}
-      </select><hr>
+      </select>
+      <hr>
+    `;
+    var v=data.volumes[currentVolume];
+    if(!v){ app.innerHTML=html+"<p>请先创建卷。</p>"; return; }
 
+    html+=`
       卷简介
       <textarea style="height:120px" oninput="v.desc=this.value;save();">${v.desc||""}</textarea><br><br>
-
-      主要人物弧光
-      <textarea style="height:90px" oninput="v.characterArc=this.value;save();">${v.characterArc||""}</textarea>
+      章节数：
+      <input type="number" min="1" value="${v.chapterCount||1}" onchange="v.chapterCount=this.value;save();">
     `;
+    app.innerHTML=html;
     return;
   }
 
   /* ===== 章节细纲 ===== */
   if(stage==="chapter"){
+    if(data.volumes.length===0){ app.innerHTML=drawSteps()+"<p>请先创建卷。</p>"; return; }
     var v=data.volumes[currentVolume];
-    if(!v.chapters || v.chapters.length===0){
+    if(!v.chapters||v.chapters.length===0){
       v.chapters=[{summary:"",scene:"",beats:"",text:""}];
     }
     var c=v.chapters[currentChapter];
-
     app.innerHTML=drawSteps()+`
       <b>章节细纲</b><br><br>
       章节概述
       <textarea rows="4" oninput="c.summary=this.value;save();">${c.summary||""}</textarea><br><br>
-
-      场景拆分
-      <textarea rows="4" oninput="c.scene=this.value;save();">${c.scene||""}</textarea><br><br>
-
-      剧情点
-      <textarea rows="6" oninput="c.beats=this.value;save();">${c.beats||""}</textarea><br><br>
-
       正文
       <textarea style="height:600px" oninput="c.text=this.value;save();">${c.text||""}</textarea>
     `;
@@ -192,16 +180,19 @@ function draw(){
   }
 }
 
-/* ===== 操作 ===== */
+/* ===== 基础操作 ===== */
 function jump(s){ stage=s; save(); draw(); }
-function addCharacter(){ data.characters.push({}); currentCharacter=data.characters.length-1; save(); draw(); }
-function removeCharacter(){ if(data.characters.length>1){ data.characters.splice(currentCharacter,1); currentCharacter=0; save(); draw(); } }
-function changeCharacter(i){ currentCharacter=Number(i); save(); draw(); }
-function addVolume(){ data.volumes.push({desc:"",chapters:[{}]}); currentVolume=data.volumes.length-1; save(); draw(); }
-function removeVolume(){ if(data.volumes.length>1){ data.volumes.pop(); currentVolume=0; save(); draw(); } }
-function changeVolume(i){ currentVolume=Number(i); currentChapter=0; save(); draw(); }
+function genIdea(){ data.preset="【占位】"; save(); draw(); }
+function genOutline(){ data.outline="【占位】"; save(); draw(); }
 
-/* ===== 启动 ===== */
+function addCharacter(){ data.characters.push({name:"",importance:"",identity:"",personality:"",relations:"",traits:""}); currentCharacter=data.characters.length-1; save(); draw(); }
+function removeCharacter(){ data.characters.splice(currentCharacter,1); currentCharacter=Math.max(0,currentCharacter-1); save(); draw(); }
+function changeCharacter(i){ currentCharacter=Number(i); save(); draw(); }
+
+function addVolume(){ data.volumes.push({desc:"",chapterCount:1,chapters:[]}); currentVolume=data.volumes.length-1; save(); draw(); }
+function removeVolume(){ data.volumes.pop(); currentVolume=Math.max(0,currentVolume-1); save(); draw(); }
+function changeVolume(i){ currentVolume=Number(i); save(); draw(); }
+
 draw();
 </script>
 
