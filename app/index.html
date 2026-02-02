@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<title>小说管理器</title>
+<title>小说项目管理</title>
 <style>
 body{font-family:sans-serif;}
 .container{max-width:900px;margin:0 auto;}
@@ -17,46 +17,83 @@ select{margin-right:8px;}
 </head>
 <body>
 
-<h1 style="text-align:center;">小说管理器</h1>
+<h1 style="text-align:center;">小说项目管理</h1>
 
 <div class="container">
-  项目名称：<input type="text" id="projectName" style="width:50%;margin-bottom:12px;" oninput="save();"><br>
-  <button class="clear-btn" onclick="clearData()">清理页面存储（localStorage）</button>
+  <button class="clear-btn" onclick="clearData()">清理页面存储（localStorage）</button><br><br>
+  
+  项目：
+  <select id="projectSelect" onchange="changeProject(this.value)"></select>
+  <input type="text" id="projectNameInput" placeholder="项目名称">
+  <button onclick="addProject()">＋ 新建项目</button>
+  <button onclick="removeProject()">－ 删除项目</button>
+  <hr>
+
   <div id="app"></div>
 </div>
 
 <script>
 /* ===== 初始化 ===== */
 var stage = localStorage.getItem("stage") || "preset";
-var currentCharacter = Number(localStorage.getItem("currentCharacter")) || 0;
-var currentVolume = Number(localStorage.getItem("currentVolume")) || 0;
-var currentChapter = Number(localStorage.getItem("currentChapter")) || 0;
-var data;
+var currentCharacter = 0;
+var currentVolume = 0;
+var currentChapter = 0;
+var currentProject = 0;
+var projects;
 
-try{ data = JSON.parse(localStorage.getItem("data")); }
-catch(e){ data = null; }
+try{ projects = JSON.parse(localStorage.getItem("projects")); }
+catch(e){ projects = null; }
 
-if(!data || typeof data!=="object"){
-  data = { projectName:"", preset:"", world:"", outline:"", characters:[], volumes:[] };
+if(!projects || !Array.isArray(projects)){
+  projects = [{name:"默认项目", preset:"", world:"", outline:"", characters:[], volumes:[]}];
 }
-if(!Array.isArray(data.characters)) data.characters=[];
-if(!Array.isArray(data.volumes)) data.volumes=[];
+save();
 
 /* ===== 保存 ===== */
 function save(){
-  var pn = document.getElementById("projectName");
-  if(pn) data.projectName = pn.value;
-  localStorage.setItem("stage",stage);
-  localStorage.setItem("currentCharacter",currentCharacter);
-  localStorage.setItem("currentVolume",currentVolume);
-  localStorage.setItem("currentChapter",currentChapter);
-  localStorage.setItem("data",JSON.stringify(data));
+  localStorage.setItem("projects", JSON.stringify(projects));
+  localStorage.setItem("stage", stage);
+  localStorage.setItem("currentProject", currentProject);
+  localStorage.setItem("currentCharacter", currentCharacter);
+  localStorage.setItem("currentVolume", currentVolume);
+  localStorage.setItem("currentChapter", currentChapter);
+  renderProjectSelect();
 }
 
 /* ===== 清理 ===== */
 function clearData(){
   localStorage.clear();
   alert("已清理，请刷新页面");
+}
+
+/* ===== 项目操作 ===== */
+function renderProjectSelect(){
+  var sel = document.getElementById("projectSelect");
+  sel.innerHTML = projects.map((p,i)=>`<option value="${i}" ${i===currentProject?'selected':''}>${p.name||("项目"+(i+1))}</option>`).join("");
+  document.getElementById("projectNameInput").value = projects[currentProject].name;
+}
+function addProject(){
+  projects.push({name:"新项目", preset:"", world:"", outline:"", characters:[], volumes:[]});
+  currentProject = projects.length-1;
+  currentCharacter=currentVolume=currentChapter=0;
+  save(); draw();
+}
+function removeProject(){
+  if(projects.length<=1) return;
+  projects.splice(currentProject,1);
+  currentProject = Math.max(0,currentProject-1);
+  currentCharacter=currentVolume=currentChapter=0;
+  save(); draw();
+}
+function changeProject(i){
+  currentProject = Number(i);
+  currentCharacter=currentVolume=currentChapter=0;
+  save(); draw();
+}
+function renameProject(){
+  var name = document.getElementById("projectNameInput").value.trim();
+  projects[currentProject].name = name;
+  save();
 }
 
 /* ===== 顶部步骤 ===== */
@@ -73,7 +110,9 @@ function drawSteps(){
 
 /* ===== 渲染 ===== */
 function draw(){
+  renameProject();
   var app=document.getElementById("app");
+  var data = projects[currentProject];
   if(!app) return;
 
   /* ===== 前期设定 ===== */
@@ -105,19 +144,18 @@ function draw(){
       data.characters.push({name:"",importance:"",identity:"",personality:"",relations:"",traits:""});
     }
 
+    if(!data.characters[currentCharacter]) currentCharacter=0;
     var c = data.characters[currentCharacter];
 
     var options = data.characters.map((ch,i)=>{
-      var label = ch.name && ch.name.trim() ? ch.name.trim() : "角色" + (i+1);
+      var label = ch.name && ch.name.trim()?ch.name.trim():"角色"+(i+1);
       return `<option value="${i}" ${i===currentCharacter?'selected':''}>${label}</option>`;
     }).join("");
 
     app.innerHTML = drawSteps()+`
       <b>角色库</b><br><br>
-
       <button onclick="addCharacter()">＋ 新增角色</button>
       <button onclick="removeCharacter()">－ 删除角色</button><br><br>
-
       当前角色：
       <select onchange="changeCharacter(this.value)">${options}</select>
       <hr>
@@ -163,10 +201,7 @@ function draw(){
     `;
 
     var v = data.volumes[currentVolume];
-    if(!v){
-      app.innerHTML = html + "<p>请先创建卷。</p>";
-      return;
-    }
+    if(!v){ app.innerHTML = html + "<p>请先创建卷。</p>"; return; }
 
     html += `
       <div class="section">
@@ -212,29 +247,22 @@ function draw(){
 
   /* ===== 章节细纲 ===== */
   if(stage==="chapter"){
-    if(data.volumes.length===0){
-      app.innerHTML=drawSteps()+"<p>请先创建卷与章节。</p>";
-      return;
-    }
+    if(data.volumes.length===0){ app.innerHTML=drawSteps()+"<p>请先创建卷与章节。</p>"; return; }
 
     var v=data.volumes[currentVolume];
     if(!v.chapters || v.chapters.length===0){
       v.chapters=[{summary:"",scene:"",beats:"",text:""}];
     }
-    var c=v.chapters[currentChapter];
+    var c=v.chapters[currentChapter]||v.chapters[0];
 
     var volOptions = data.volumes.map((_,i)=>`<option value="${i}" ${i===currentVolume?'selected':''}>第 ${i+1} 卷</option>`).join("");
     var chapOptions = v.chapters.map((_,i)=>`<option value="${i}" ${i===currentChapter?'selected':''}>第 ${i+1} 章</option>`).join("");
 
-    app.innerHTML=drawSteps()+`
+    app.innerHTML = drawSteps()+`
       <b>章节细纲</b><br><br>
 
-      第
-      <select onchange="changeVolume(this.value)">${volOptions}</select>
-      卷　
-      第
-      <select onchange="changeChapter(this.value)">${chapOptions}</select>
-      章<br><br>
+      第<select onchange="changeVolume(this.value)">${volOptions}</select>卷　
+      第<select onchange="changeChapter(this.value)">${chapOptions}</select>章<br><br>
 
       章节概述
       <textarea rows="4" oninput="c.summary=this.value;save();">${c.summary||""}</textarea><br><br>
@@ -258,79 +286,98 @@ function draw(){
   }
 }
 
-/* ===== 跳转 ===== */
+/* ===== 基础操作 ===== */
 function jump(s){ stage=s; save(); draw(); }
 
-/* ===== 占位生成 ===== */
-function genIdea(){ data.preset="【脑洞生成占位】"; save(); draw(); }
-function genOutline(){ data.outline="【全书大纲生成占位】"; save(); draw(); }
+function genIdea(){ projects[currentProject].preset="【脑洞生成占位】"; save(); draw(); }
+function genOutline(){ projects[currentProject].outline="【全书大纲生成占位】"; save(); draw(); }
 
 /* ===== 角色库操作 ===== */
-function saveCurrentCharacter(){
-  if(data.characters[currentCharacter]){
-    // 所有字段已经在 textarea oninput 保存，所以这里可以确保同步
-  }
-}
-
 function addCharacter(){
-  saveCurrentCharacter();
+  var data = projects[currentProject];
   data.characters.push({name:"",importance:"",identity:"",personality:"",relations:"",traits:""});
   currentCharacter = data.characters.length-1;
   save(); draw();
 }
-
 function removeCharacter(){
-  saveCurrentCharacter();
+  var data = projects[currentProject];
   if(data.characters.length>0){
     data.characters.splice(currentCharacter,1);
-    currentCharacter = Math.max(0,currentCharacter-1);
+    currentCharacter=Math.max(0,currentCharacter-1);
     save(); draw();
   }
 }
-
 function changeCharacter(i){
-  saveCurrentCharacter();
+  var data = projects[currentProject];
   currentCharacter = Number(i);
   save(); draw();
 }
 
-/* ===== 卷纲逻辑 ===== */
+/* ===== 卷纲操作 ===== */
 function addVolume(){
+  var data = projects[currentProject];
   data.volumes.push({desc:"",characterArc:"",startState:"",goal:"",events:"",endState:"",chapterCount:1,chapters:[{summary:"",scene:"",beats:"",text:""}]});
-  currentVolume=data.volumes.length-1;
+  currentVolume = data.volumes.length-1;
   save(); draw();
 }
 function removeVolume(){
+  var data = projects[currentProject];
   if(data.volumes.length>0){
     data.volumes.pop();
     currentVolume=Math.max(0,currentVolume-1);
     save(); draw();
   }
 }
-function updateVolumeField(i,k,v){ data.volumes[i][k]=v; save(); }
-
+function updateVolumeField(i,k,v){
+  var data = projects[currentProject];
+  data.volumes[i][k] = v;
+  save();
+}
 function genAllVolumeDesc(){
-  data.volumes.forEach((v,i)=>{
-    v.desc="【第"+(i+1)+"卷简介】\n"+(data.outline||"");
-  });
+  var data = projects[currentProject];
+  data.volumes.forEach((v,i)=>{v.desc="【第"+(i+1)+"卷简介】\n"+(data.outline||"");});
   save(); draw();
 }
-
-function genVolumeGoal(i){ var v=data.volumes[i]; v.goal="【卷初目标计划占位】"; save(); draw(); }
-function genVolumeEvents(i){ var v=data.volumes[i]; v.events="【事件节点占位】"; v.endState="【卷末状态结算占位】"; save(); draw(); }
-function genChapterOutline(i){ var v=data.volumes[i]; v.chapters=[]; for(let n=0;n<(v.chapterCount||1);n++){ v.chapters.push({summary:"第"+(n+1)+"章概述",scene:"",beats:"",text:""}); } save(); }
+function genVolumeGoal(i){
+  var data = projects[currentProject];
+  data.volumes[i].goal="【卷初目标计划占位】";
+  save(); draw();
+}
+function genVolumeEvents(i){
+  var data = projects[currentProject];
+  var v = data.volumes[i];
+  v.events="【事件节点占位】";
+  v.endState="【卷末状态结算占位】";
+  save(); draw();
+}
+function genChapterOutline(i){
+  var data = projects[currentProject];
+  var v = data.volumes[i];
+  v.chapters=[];
+  for(let n=0;n<(v.chapterCount||1);n++) v.chapters.push({summary:"第"+(n+1)+"章概述",scene:"",beats:"",text:""});
+  save();
+}
 
 /* ===== 章节细纲生成占位 ===== */
-function genScene(){ var c=data.volumes[currentVolume].chapters[currentChapter]; if(!c.scene){ c.scene="【场景拆分占位】"; save(); draw(); } }
-function genBeats(){ var c=data.volumes[currentVolume].chapters[currentChapter]; if(!c.beats){ c.beats="【细纲剧情点占位】"; save(); draw(); } }
-function genText(){ var c=data.volumes[currentVolume].chapters[currentChapter]; if(!c.text){ c.text="【正文生成占位】"; save(); draw(); } }
+function genScene(){
+  var c = projects[currentProject].volumes[currentVolume].chapters[currentChapter];
+  if(!c.scene){ c.scene="【场景拆分占位】"; save(); draw(); }
+}
+function genBeats(){
+  var c = projects[currentProject].volumes[currentVolume].chapters[currentChapter];
+  if(!c.beats){ c.beats="【细纲剧情点占位】"; save(); draw(); }
+}
+function genText(){
+  var c = projects[currentProject].volumes[currentVolume].chapters[currentChapter];
+  if(!c.text){ c.text="【正文生成占位】"; save(); draw(); }
+}
 
-/* ===== 切换 ===== */
+/* ===== 切换卷章 ===== */
 function changeVolume(i){ currentVolume=Number(i); currentChapter=0; save(); draw(); }
 function changeChapter(i){ currentChapter=Number(i); save(); draw(); }
 
 /* ===== 启动 ===== */
-document.getElementById("projectName").value = data.projectName||"";
+renderProjectSelect();
 draw();
 </script>
 
