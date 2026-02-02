@@ -185,14 +185,37 @@ function jump(s){ stage=s; save(); draw(); }
 function genIdea(){ data.preset="【占位】"; save(); draw(); }
 function genOutline(){ data.outline="【占位】"; save(); draw(); }
 
-function addCharacter(){ data.characters.push({name:"",importance:"",identity:"",personality:"",relations:"",traits:""}); currentCharacter=data.characters.length-1; save(); draw(); }
-function removeCharacter(){ data.characters.splice(currentCharacter,1); currentCharacter=Math.max(0,currentCharacter-1); save(); draw(); }
-function changeCharacter(i){ currentCharacter=Number(i); save(); draw(); }
+function addCharacter(){
+  data.characters.push({name:"",importance:"",identity:"",personality:"",relations:"",traits:""});
+  currentCharacter=data.characters.length-1;
+  save(); draw();
+}
+function removeCharacter(){
+  data.characters.splice(currentCharacter,1);
+  currentCharacter=Math.max(0,currentCharacter-1);
+  save(); draw();
+}
+function changeCharacter(i){
+  currentCharacter=Number(i);
+  save(); draw();
+}
 
-function addVolume(){ data.volumes.push({desc:"",chapterCount:1,chapters:[]}); currentVolume=data.volumes.length-1; save(); draw(); }
-function removeVolume(){ data.volumes.pop(); currentVolume=Math.max(0,currentVolume-1); save(); draw(); }
-function changeVolume(i){ currentVolume=Number(i); save(); draw(); }
+function addVolume(){
+  data.volumes.push({desc:"",chapterCount:1,chapters:[]});
+  currentVolume=data.volumes.length-1;
+  save(); draw();
+}
+function removeVolume(){
+  data.volumes.pop();
+  currentVolume=Math.max(0,currentVolume-1);
+  save(); draw();
+}
+function changeVolume(i){
+  currentVolume=Number(i);
+  save(); draw();
+}
 
+/* ===== 启动 ===== */
 draw();
 </script>
 
