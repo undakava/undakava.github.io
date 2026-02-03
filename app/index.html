@@ -4,313 +4,286 @@
 <meta charset="UTF-8">
 <title>创作工具</title>
 <style>
-body{font-family:sans-serif;margin:0;padding:0;background:#fafafa;}
-.container{max-width:900px;margin:0 auto;padding:16px;}
-textarea{width:100%;box-sizing:border-box;font-family:sans-serif;margin-bottom:8px;}
-button{margin:6px 6px 6px 0;padding:6px 12px;border:none;border-radius:4px;cursor:pointer;}
-.clear-btn{background:#f66;color:#fff;}
+body{font-family:sans-serif;}
+.container{max-width:900px;margin:0 auto;}
+textarea{width:100%;box-sizing:border-box;}
+button{margin:6px 6px 6px 0;}
+.clear-btn{background:#f66;color:#fff;padding:6px 12px;border:none;border-radius:4px;}
 .section{margin:16px 0;}
 select{margin-right:8px;}
 .small{width:20em;height:2.4em;}
 .medium{width:100%;height:48px;}
-h1{text-align:center;}
 </style>
 </head>
 <body>
 
-<h1>创作工具</h1>
+<h1 style="text-align:center;">创作工具</h1>
 
 <div class="container">
-  <button class="clear-btn" onclick="clearData()">清理页面存储（localStorage）</button>
-  <div id="app"></div>
+<button class="clear-btn" onclick="clearData()">清理页面存储</button>
+<div id="app"></div>
 </div>
 
 <script>
+
 /* ===== 初始化 ===== */
 var stage = localStorage.getItem("stage") || "preset";
 var currentProject = Number(localStorage.getItem("currentProject")) || 0;
 var currentCharacter = Number(localStorage.getItem("currentCharacter")) || 0;
-var currentVolume = Number(localStorage.getItem("currentVolume")) || 0;
-var currentChapter = Number(localStorage.getItem("currentChapter")) || 0;
-var data;
 
-try { data = JSON.parse(localStorage.getItem("data")); } 
-catch(e) { data = null; }
+var data = JSON.parse(localStorage.getItem("data") || '{"projects":[]}');
 
-if(!data || typeof data !== "object"){ data = { projects: [] }; }
-if(!Array.isArray(data.projects)) data.projects = [];
-if(!data.projects[currentProject]){
-  data.projects.push({
-    name:"新项目",
-    preset:"",
-    world:"",
-    outline:"",
-    characters:[],
-    volumes:[]
-  });
+if(!data.projects.length){
+data.projects.push({
+name:"新项目",
+preset:"",
+world:"",
+outline:"",
+characters:[],
+volumes:[]
+});
 }
 
 /* ===== 保存 ===== */
 function save(){
-  localStorage.setItem("stage", stage);
-  localStorage.setItem("currentProject", currentProject);
-  localStorage.setItem("currentCharacter", currentCharacter);
-  localStorage.setItem("currentVolume", currentVolume);
-  localStorage.setItem("currentChapter", currentChapter);
-  localStorage.setItem("data", JSON.stringify(data));
+localStorage.setItem("stage",stage);
+localStorage.setItem("currentProject",currentProject);
+localStorage.setItem("currentCharacter",currentCharacter);
+localStorage.setItem("data",JSON.stringify(data));
 }
 
 /* ===== 清理 ===== */
 function clearData(){
-  localStorage.clear();
-  alert("已清理，请刷新页面");
+localStorage.clear();
+location.reload();
 }
 
 /* ===== 顶部步骤 ===== */
 function drawSteps(){
-  return `
-  <div style="margin-bottom:12px;">
-    <button onclick="jump('preset')" ${stage==='preset'?'style="background:#111;color:#fff"':''}>前期设定</button>
-    <button onclick="jump('outline')" ${stage==='outline'?'style="background:#111;color:#fff"':''}>全书大纲</button>
-    <button onclick="jump('characters')" ${stage==='characters'?'style="background:#111;color:#fff"':''}>角色库</button>
-    <button onclick="jump('volume')" ${stage==='volume'?'style="background:#111;color:#fff"':''}>卷纲</button>
-    <button onclick="jump('chapter')" ${stage==='chapter'?'style="background:#111;color:#fff"':''}>章节细纲</button>
-  </div>`;
+return `
+<div style="margin-bottom:12px;">
+<button onclick="jump('preset')">前期设定</button>
+<button onclick="jump('outline')">全书大纲</button>
+<button onclick="jump('characters')">角色库</button>
+</div>`;
 }
 
 /* ===== 渲染 ===== */
 function draw(){
-  var app = document.getElementById("app");
-  if(!app) return;
-  var project = data.projects[currentProject];
 
-  /* ===== 项目操作 ===== */
-  var projectOptions = data.projects.map((p,i) => `<option value="${i}" ${i===currentProject?'selected':''}>${p.name||"未命名"}</option>`).join("");
-  var htmlProject = `
-    项目：
-    <select onchange="changeProject(this.value)">${projectOptions}</select>
-    名称：<input type="text" value="${project.name||''}" oninput="project.name=this.value;save();">
-    <button onclick="addProject()">＋ 新建项目</button>
-    <button onclick="removeProject()">－ 删除项目</button>
-    <hr>
-  `;
+var p = data.projects[currentProject];
 
-  /* ===== 前期设定 ===== */
-  if(stage==="preset"){
-    app.innerHTML = htmlProject + drawSteps() + `
-      <b>前期设定</b><br><br>
-      世界观（手写）：<br>
-      <textarea id="world" rows="6" oninput="project.world=this.value;save();">${project.world||""}</textarea><br><br>
-      脑洞生成：<br>
-      <textarea id="preset" rows="6" oninput="project.preset=this.value;save();">${project.preset||""}</textarea><br>
-      <button onclick="genIdea()">生成脑洞</button>
-    `;
-    return;
-  }
+var projectOptions = data.projects.map((x,i)=>
+`<option value="${i}" ${i===currentProject?'selected':''}>${x.name||"未命名"}</option>`
+).join("");
 
-  /* ===== 全书大纲 ===== */
-  if(stage==="outline"){
-    app.innerHTML = htmlProject + drawSteps() + `
-      <b>全书大纲</b><br><br>
-      <textarea id="outline" rows="48" oninput="project.outline=this.value;save();">${project.outline||""}</textarea><br>
-      <button onclick="genOutline()">生成全书大纲</button>
-    `;
-    return;
-  }
+/* ===== 项目栏 ===== */
+var projectBar = `
+项目：
+<select onchange="changeProject(this.value)">
+${projectOptions}
+</select>
 
-  /* ===== 角色库 ===== */
-  if(stage==="characters"){
-    if(project.characters.length === 0){
-      project.characters.push({name:"",importance:"",identity:"",personality:"",relations:"",traits:""});
-    }
-    var c = project.characters[currentCharacter];
-    var options = project.characters.map((ch,i)=>{
-      var label = ch.name && ch.name.trim() ? ch.name.trim() : "角色" + (i+1);
-      return `<option value="${i}" ${i===currentCharacter?'selected':''}>${label}</option>`;
-    }).join("");
-    app.innerHTML = htmlProject + drawSteps() + `
-      <b>角色库</b><br><br>
-      <button onclick="addCharacter()">＋ 新增角色</button>
-      <button onclick="removeCharacter()">－ 删除角色</button><br><br>
-      当前角色：
-      <select onchange="changeCharacter(this.value)">${options}</select>
-      <hr>
-      姓名<br>
-      <textarea class="small" oninput="c.name=this.value;save();">${c.name||""}</textarea><br><br>
-      角色重要性<br>
-      <textarea class="small" oninput="c.importance=this.value;save();">${c.importance||""}</textarea><br><br>
-      性格<br>
-      <textarea class="small" oninput="c.personality=this.value;save();">${c.personality||""}</textarea><br><br>
-      身份<br>
-      <textarea class="medium" oninput="c.identity=this.value;save();">${c.identity||""}</textarea><br><br>
-      核心关系<br>
-      <textarea class="medium" oninput="c.relations=this.value;save();">${c.relations||""}</textarea><br><br>
-      人物特性（擅长 / 弱点 / 限制）<br>
-      <textarea class="medium" oninput="c.traits=this.value;save();">${c.traits||""}</textarea>
-    `;
-    return;
-  }
+名称：
+<textarea class="small"
+oninput="data.projects[currentProject].name=this.value;save();"
+>${p.name||""}</textarea>
 
-  /* ===== 卷纲/章节细纲 同上（保持原逻辑，不改动） ===== */
-  // 卷纲
-  if(stage==="volume"){
-    var volOptions = project.volumes.map((_,i) => `<option value="${i}" ${i===currentVolume?'selected':''}>第 ${i+1} 卷</option>`).join("");
-    var v = project.volumes[currentVolume];
-    var html = htmlProject + drawSteps() + `
-      <b>卷纲</b><br><br>
-      <button onclick="addVolume()">＋ 增加一卷</button>
-      <button onclick="removeVolume()">－ 减少一卷</button><br><br>
-      <button onclick="genAllVolumeDesc()">生成卷简介</button><br><br>
-      当前工作卷：
-      <select onchange="changeVolume(this.value)">${volOptions}</select>
-      <hr>
-    `;
-    if(!v){ app.innerHTML = html + "<p>请先创建卷。</p>"; return; }
+<button onclick="addProject()">新建项目</button>
+<button onclick="removeProject()">删除项目</button>
+<hr>
+`;
 
-    html += `
-      <div class="section">
-        <b>第 ${currentVolume+1} 卷</b><br><br>
-        卷简介
-        <textarea style="height:120px" oninput="updateVolumeField(${currentVolume},'desc',this.value)">${v.desc||""}</textarea><br><br>
-        主要人物弧光
-        <textarea style="height:90px" oninput="updateVolumeField(${currentVolume},'characterArc',this.value)">${v.characterArc||""}</textarea><br><br>
-        卷初状态
-        <textarea style="height:70px" oninput="updateVolumeField(${currentVolume},'startState',this.value)">${v.startState||""}</textarea><br><br>
-        <button onclick="genVolumeGoal(${currentVolume})">生成目标计划</button><br><br>
-        卷初目标计划
-        <textarea style="height:70px" oninput="updateVolumeField(${currentVolume},'goal',this.value)">${v.goal||""}</textarea><br><br>
-        <hr>
-        <button onclick="genVolumeEvents(${currentVolume})">生成事件节点</button><br><br>
-        事件节点
-        <textarea style="height:110px" oninput="updateVolumeField(${currentVolume},'events',this.value)">${v.events||""}</textarea><br><br>
-        卷末状态结算
-        <textarea style="height:70px" oninput="updateVolumeField(${currentVolume},'endState',this.value)">${v.endState||""}</textarea><br><br>
-        <hr>
-        章节数：
-        <input type="number" min="1" value="${v.chapterCount||1}" onchange="updateVolumeField(${currentVolume},'chapterCount',this.value)">
-        <br><br>
-        <button onclick="genChapterOutline(${currentVolume})">生成章节概述</button>
-      </div>
-    `;
-    app.innerHTML = html;
-    return;
-  }
+/* ===== 前期设定 ===== */
+if(stage==="preset"){
+app.innerHTML = projectBar + drawSteps() + `
+<b>前期设定</b><br><br>
 
-  // 章节细纲
-  if(stage==="chapter"){
-    if(project.volumes.length===0){ app.innerHTML=htmlProject+drawSteps()+"<p>请先创建卷。</p>"; return; }
-    var v = project.volumes[currentVolume];
-    if(!v.chapters || v.chapters.length===0) v.chapters=[{summary:"",scene:"",beats:"",text:""}];
-    var c = v.chapters[currentChapter];
-    var volOptions = project.volumes.map((_,i) => `<option value="${i}" ${i===currentVolume?'selected':''}>第 ${i+1} 卷</option>`).join("");
-    var chapOptions = v.chapters.map((_,i) => `<option value="${i}" ${i===currentChapter?'selected':''}>第 ${i+1} 章</option>`).join("");
+世界观<br>
+<textarea rows="6"
+oninput="data.projects[currentProject].world=this.value;save();"
+>${p.world||""}</textarea><br><br>
 
-    app.innerHTML = htmlProject+drawSteps()+`
-      <b>章节细纲</b><br><br>
-      第<select onchange="changeVolume(this.value)">${volOptions}</select>卷　
-      第<select onchange="changeChapter(this.value)">${chapOptions}</select>章<br><br>
-      章节概述
-      <textarea rows="4" oninput="c.summary=this.value;save();">${c.summary||""}</textarea><br><br>
-      <button onclick="genScene()">场景拆分</button><br><br>
-      场景拆分
-      <textarea rows="4" oninput="c.scene=this.value;save();">${c.scene||""}</textarea><br><br>
-      <button onclick="genBeats()">生成剧情点</button><br><br>
-      细纲剧情点
-      <textarea rows="6" oninput="c.beats=this.value;save();">${c.beats||""}</textarea><br><br>
-      <button onclick="genText()">生成正文</button><br><br>
-      正文
-      <textarea style="height:600px;overflow:auto" oninput="c.text=this.value;save();">${c.text||""}</textarea>
-    `;
-    return;
-  }
+脑洞生成<br>
+<textarea rows="6"
+oninput="data.projects[currentProject].preset=this.value;save();"
+>${p.preset||""}</textarea><br>
+
+<button onclick="genIdea()">生成脑洞</button>
+`;
+return;
+}
+
+/* ===== 全书大纲 ===== */
+if(stage==="outline"){
+app.innerHTML = projectBar + drawSteps() + `
+<b>全书大纲</b><br><br>
+
+<textarea rows="48"
+oninput="data.projects[currentProject].outline=this.value;save();"
+>${p.outline||""}</textarea><br>
+
+<button onclick="genOutline()">生成全书大纲</button>
+`;
+return;
+}
+
+/* ===== 角色库 ===== */
+if(stage==="characters"){
+
+if(!p.characters.length){
+p.characters.push({
+name:"",
+importance:"",
+identity:"",
+personality:"",
+relations:"",
+traits:""
+});
+}
+
+var c = p.characters[currentCharacter];
+
+var options = p.characters.map((ch,i)=>{
+var label = ch.name && ch.name.trim()
+? ch.name.trim()
+: "角色"+(i+1);
+
+return `<option value="${i}" ${i===currentCharacter?'selected':''}>${label}</option>`;
+}).join("");
+
+app.innerHTML = projectBar + drawSteps() + `
+<b>角色库</b><br><br>
+
+<button onclick="addCharacter()">新增角色</button>
+<button onclick="removeCharacter()">删除角色</button><br><br>
+
+当前角色：
+<select onchange="changeCharacter(this.value)">
+${options}
+</select>
+<hr>
+
+姓名<br>
+<textarea class="small"
+oninput="data.projects[currentProject].characters[currentCharacter].name=this.value;save();"
+>${c.name||""}</textarea><br><br>
+
+角色重要性<br>
+<textarea class="small"
+oninput="data.projects[currentProject].characters[currentCharacter].importance=this.value;save();"
+>${c.importance||""}</textarea><br><br>
+
+性格<br>
+<textarea class="small"
+oninput="data.projects[currentProject].characters[currentCharacter].personality=this.value;save();"
+>${c.personality||""}</textarea><br><br>
+
+身份<br>
+<textarea class="medium"
+oninput="data.projects[currentProject].characters[currentCharacter].identity=this.value;save();"
+>${c.identity||""}</textarea><br><br>
+
+核心关系<br>
+<textarea class="medium"
+oninput="data.projects[currentProject].characters[currentCharacter].relations=this.value;save();"
+>${c.relations||""}</textarea><br><br>
+
+人物特性<br>
+<textarea class="medium"
+oninput="data.projects[currentProject].characters[currentCharacter].traits=this.value;save();"
+>${c.traits||""}</textarea>
+`;
+return;
+}
+
 }
 
 /* ===== 跳转 ===== */
-function jump(s){ stage=s; save(); draw(); }
+function jump(s){
+stage=s;
+save();
+draw();
+}
+
+/* ===== 生成占位 ===== */
+function genIdea(){
+data.projects[currentProject].preset="【脑洞占位】";
+save();
+draw();
+}
+
+function genOutline(){
+data.projects[currentProject].outline="【大纲占位】";
+save();
+draw();
+}
 
 /* ===== 项目操作 ===== */
 function addProject(){
-  data.projects.push({name:"新项目",preset:"",world:"",outline:"",characters:[],volumes:[]});
-  currentProject = data.projects.length-1; save(); draw();
+data.projects.push({
+name:"新项目",
+preset:"",
+world:"",
+outline:"",
+characters:[],
+volumes:[]
+});
+currentProject=data.projects.length-1;
+save();
+draw();
 }
+
 function removeProject(){
-  if(data.projects.length>1){
-    data.projects.splice(currentProject,1);
-    currentProject = Math.max(0,currentProject-1);
-    save(); draw();
-  }
+if(data.projects.length>1){
+data.projects.splice(currentProject,1);
+currentProject=0;
+save();
+draw();
+}
 }
 
-/* ===== 占位生成 ===== */
-function genIdea(){ data.projects[currentProject].preset="【脑洞生成占位】"; save(); draw(); }
-function genOutline(){ data.projects[currentProject].outline="【全书大纲生成占位】"; save(); draw(); }
-
-/* ===== 角色库操作 ===== */
+/* ===== 角色操作 ===== */
 function addCharacter(){
-  var project = data.projects[currentProject];
-  project.characters.push({name:"",importance:"",identity:"",personality:"",relations:"",traits:""});
-  currentCharacter = project.characters.length-1;
-  save(); draw();
+data.projects[currentProject].characters.push({
+name:"",
+importance:"",
+identity:"",
+personality:"",
+relations:"",
+traits:""
+});
+currentCharacter=data.projects[currentProject].characters.length-1;
+save();
+draw();
 }
+
 function removeCharacter(){
-  var project = data.projects[currentProject];
-  if(project.characters.length>0){
-    project.characters.splice(currentCharacter,1);
-    currentCharacter = Math.max(0,currentCharacter-1);
-    save(); draw();
-  }
+var arr=data.projects[currentProject].characters;
+if(arr.length){
+arr.splice(currentCharacter,1);
+currentCharacter=0;
+save();
+draw();
 }
+}
+
 function changeCharacter(i){
-  currentCharacter = Number(i);
-  save(); draw();
+currentCharacter=Number(i);
+save();
+draw();
 }
 
-/* ===== 卷纲操作 ===== */
-function addVolume(){
-  var project = data.projects[currentProject];
-  project.volumes.push({desc:"",characterArc:"",startState:"",goal:"",events:"",endState:"",chapterCount:1,chapters:[{summary:"",scene:"",beats:"",text:""}]});
-  currentVolume = project.volumes.length-1;
-  save(); draw();
+function changeProject(i){
+currentProject=Number(i);
+currentCharacter=0;
+save();
+draw();
 }
-function removeVolume(){
-  var project = data.projects[currentProject];
-  if(project.volumes.length>0){
-    project.volumes.pop();
-    currentVolume = Math.max(0,currentVolume-1);
-    save(); draw();
-  }
-}
-function updateVolumeField(i,k,v){ data.projects[currentProject].volumes[i][k]=v; save(); }
-function genAllVolumeDesc(){ 
-  var project = data.projects[currentProject];
-  project.volumes.forEach((v,i)=>v.desc="【第"+(i+1)+"卷简介】\n"+(project.outline||""));
-  save(); draw();
-}
-function genVolumeGoal(i){ data.projects[currentProject].volumes[i].goal="【卷初目标计划占位】"; save(); draw(); }
-function genVolumeEvents(i){
-  var v = data.projects[currentProject].volumes[i];
-  v.events="【事件节点占位】"; v.endState="【卷末状态结算占位】"; save(); draw();
-}
-function genChapterOutline(i){
-  var v = data.projects[currentProject].volumes[i];
-  v.chapters=[];
-  for(let n=0;n<(v.chapterCount||1);n++) v.chapters.push({summary:"第"+(n+1)+"章概述",scene:"",beats:"",text:""});
-  save(); draw();
-}
-
-/* ===== 章节细纲占位 ===== */
-function genScene(){ var c=data.projects[currentProject].volumes[currentVolume].chapters[currentChapter]; if(!c.scene){c.scene="【场景拆分占位】"; save(); draw();} }
-function genBeats(){ var c=data.projects[currentProject].volumes[currentVolume].chapters[currentChapter]; if(!c.beats){c.beats="【细纲剧情点占位】"; save(); draw();} }
-function genText(){ var c=data.projects[currentProject].volumes[currentVolume].chapters[currentChapter]; if(!c.text){c.text="【正文生成占位】"; save(); draw();} }
-
-/* ===== 切换 ===== */
-function changeProject(i){ currentProject=Number(i); currentCharacter=0; currentVolume=0; currentChapter=0; save(); draw(); }
-function changeVolume(i){ currentVolume=Number(i); currentChapter=0; save(); draw(); }
-function changeChapter(i){ currentChapter=Number(i); save(); draw(); }
 
 /* ===== 启动 ===== */
 draw();
-</script>
 
+</script>
 </body>
 </html>
