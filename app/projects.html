@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>项目书架</title>
+
+<style>
+body{
+  font-family:sans-serif;
+  margin:0;
+  background:#f5f5f5;
+}
+
+.header{
+  padding:15px;
+  background:#222;
+  color:#fff;
+  font-size:20px;
+}
+
+.toolbar{
+  padding:12px;
+}
+
+button{
+  padding:8px 14px;
+  font-size:16px;
+  cursor:pointer;
+}
+
+.grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(220px,1fr));
+  gap:15px;
+  padding:15px;
+}
+
+.card{
+  background:#fff;
+  border-radius:8px;
+  padding:12px;
+  box-shadow:0 2px 6px rgba(0,0,0,0.15);
+  display:flex;
+  flex-direction:column;
+}
+
+.card textarea{
+  width:100%;
+  font-size:16px;
+  resize:none;
+  border:1px solid #ccc;
+  border-radius:4px;
+  padding:4px;
+}
+
+.card small{
+  color:#666;
+}
+
+.card .actions{
+  margin-top:auto;
+  display:flex;
+  justify-content:space-between;
+}
+</style>
+</head>
+
+<body>
+
+<div class="header">📚 项目书架</div>
+
+<div class="toolbar">
+  <button onclick="createProject()">＋ 新建项目</button>
+</div>
+
+<div class="grid" id="grid"></div>
+
+<script>
+
+/* ===== 项目存储 ===== */
+
+function loadProjects(){
+  try{
+    return JSON.parse(localStorage.getItem("projects")) || {};
+  }catch(e){
+    return {};
+  }
+}
+
+function saveProjects(p){
+  localStorage.setItem("projects",JSON.stringify(p));
+}
+
+/* ===== 新建项目 ===== */
+
+function createProject(){
+  let projects = loadProjects();
+
+  let id = "p_"+Date.now();
+
+  projects[id] = {
+    name:"未命名作品",
+    updated:Date.now(),
+    data:{
+      preset:"",
+      world:"",
+      outline:"",
+      characters:[],
+      volumes:[]
+    }
+  };
+
+  saveProjects(projects);
+  draw();
+}
+
+/* ===== 删除项目 ===== */
+
+function deleteProject(id){
+  if(!confirm("确定删除该项目？")) return;
+
+  let projects = loadProjects();
+  delete projects[id];
+
+  saveProjects(projects);
+  draw();
+}
+
+/* ===== 更新名称 ===== */
+
+function updateName(id,val){
+  let projects = loadProjects();
+  projects[id].name = val;
+  projects[id].updated = Date.now();
+  saveProjects(projects);
+}
+
+/* ===== 打开项目 ===== */
+
+function openProject(id){
+  window.location.href = "index.html?pid="+id;
+}
+
+/* ===== 时间格式 ===== */
+
+function formatTime(t){
+  let d = new Date(t);
+  return d.toLocaleString();
+}
+
+/* ===== 渲染 ===== */
+
+function draw(){
+  let grid = document.getElementById("grid");
+  let projects = loadProjects();
+
+  let html = "";
+
+  Object.keys(projects).forEach(id=>{
+    let p = projects[id];
+
+    html += `
+    <div class="card">
+      <textarea rows="2"
+        onchange="updateName('${id}',this.value)"
+      >${p.name}</textarea>
+
+      <small>更新时间：${formatTime(p.updated)}</small>
+
+      <div class="actions">
+        <button onclick="openProject('${id}')">进入</button>
+        <button onclick="deleteProject('${id}')">删除</button>
+      </div>
+    </div>
+    `;
+  });
+
+  grid.innerHTML = html;
+}
+
+/* ===== 启动 ===== */
+
+draw();
+
+</script>
+
+</body>
+</html>
