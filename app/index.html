@@ -63,7 +63,7 @@ button,select,input{font-size:19px;}
 <div style="padding:10px;">
   <button onclick="goProjects()">← 返回项目大厅</button>
 </div>
-<h1 style="text-align:center;">忽略标题</h1>
+<h1 id="pageTitle" style="text-align:center;">忽略标题</h1>
 
 <div class="container">
 <button class="clear-btn" onclick="clearData()">清理页面存储</button>
@@ -483,6 +483,22 @@ function changeChapter(i){currentChapter=Number(i);save();draw();}
 function goProjects(){
   window.location.href = "projects.html";
 }
+
+function loadProjectTitle(){
+  var params = new URLSearchParams(window.location.search);
+  var pid = params.get("pid");
+  if(!pid) return;
+
+  try{
+    var projects = JSON.parse(localStorage.getItem("projects")) || {};
+    if(projects[pid] && projects[pid].name){
+      document.getElementById("pageTitle").innerText =
+        "《" + projects[pid].name + "》";
+    }
+  }catch(e){}
+}
+
+loadProjectTitle();
 draw();
 
 </script>
