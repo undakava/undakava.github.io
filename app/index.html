@@ -154,11 +154,23 @@ function save(){
 
     var projects = JSON.parse(localStorage.getItem("projects")) || {};
 
-    if(projects[currentPid]){
-      projects[currentPid].data = data;
-      projects[currentPid].updated = Date.now();
-      localStorage.setItem("projects",JSON.stringify(projects));
+    if(!projects[currentPid]){
+  projects[currentPid] = {
+    name:"未命名作品",
+    updated:Date.now(),
+    data:{
+      preset:"",
+      world:"",
+      outline:"",
+      characters:[],
+      volumes:[]
     }
+  };
+}
+
+projects[currentPid].data = data;
+projects[currentPid].updated = Date.now();
+localStorage.setItem("projects",JSON.stringify(projects));
 
   }else{
 
