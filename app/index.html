@@ -92,7 +92,17 @@ function loadProjectData(){
     var projects = JSON.parse(localStorage.getItem("projects")) || {};
 
     if(!projects[currentPid]){
-      projects[currentPid] = {name:"未命名项目",updated:Date.now(),data:null};
+      projects[currentPid] = {
+        name:"未命名项目",
+        updated:Date.now(),
+        data:{
+          preset:"",
+          world:"",
+          outline:"",
+          characters:[],
+          volumes:[]
+        }
+      };
     }
 
     if(!projects[currentPid].data){
@@ -120,25 +130,18 @@ function loadProjectData(){
   }
 
   if(!data || typeof data!=="object"){
-    data = {preset:"",world:"",outline:"",characters:[],volumes:[]};
+    data={
+      preset:"",
+      world:"",
+      outline:"",
+      characters:[],
+      volumes:[]
+    };
   }
 
   if(!Array.isArray(data.characters)) data.characters=[];
   if(!Array.isArray(data.volumes)) data.volumes=[];
 }
-
-if(!data || typeof data!=="object"){
-data={
-preset:"",
-world:"",
-outline:"",
-characters:[],
-volumes:[]
-};
-}
-
-if(!Array.isArray(data.characters)) data.characters=[];
-if(!Array.isArray(data.volumes)) data.volumes=[];
 
 
 /* ===== 保存 ===== */
