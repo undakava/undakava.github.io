@@ -60,6 +60,9 @@ button,select,input{font-size:19px;}
 
 <body>
 
+<div style="padding:10px;">
+  <button onclick="goProjects()">← 返回项目大厅</button>
+</div>
 <h1 style="text-align:center;">忽略标题</h1>
 
 <div class="container">
@@ -477,6 +480,9 @@ if(!c.text){c.text="【正文生成占位】";save();draw();}
 function changeVolume(i){currentVolume=Number(i);currentChapter=0;save();draw();}
 function changeChapter(i){currentChapter=Number(i);save();draw();}
 
+function goProjects(){
+  window.location.href = "projects.html";
+}
 draw();
 
 </script>
