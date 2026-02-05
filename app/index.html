@@ -6,13 +6,46 @@
 <title>忽略标题</title>
 
 <style>
-body{font-family:sans-serif;font-size:18px;}
-.container{max-width:900px;margin:0 auto;padding:10px;}
-textarea{width:100%;box-sizing:border-box;font-size:18px;line-height:1.6;padding:6px;}
-button{margin:6px 6px 6px 0;font-size:17px;padding:6px 12px;}
-select,input{font-size:17px;}
-.clear-btn{background:#f66;color:#fff;padding:6px 12px;border:none;border-radius:4px;}
+
+body{
+  font-family:sans-serif;
+  font-size:18px;
+}
+
+.container{
+  max-width:900px;
+  margin:0 auto;
+  padding:10px;
+}
+
+textarea{
+  width:100%;
+  box-sizing:border-box;
+  font-size:18px;
+  line-height:1.6;
+  padding:6px;
+}
+
+button{
+  margin:6px 6px 6px 0;
+  font-size:17px;
+  padding:6px 12px;
+}
+
+select,input{
+  font-size:17px;
+}
+
+.clear-btn{
+  background:#f66;
+  color:#fff;
+  padding:6px 12px;
+  border:none;
+  border-radius:4px;
+}
+
 .section{margin:16px 0;}
+
 .small{width:20em;height:2.4em;}
 .medium{width:100%;height:48px;}
 
@@ -21,15 +54,15 @@ body{font-size:20px;}
 textarea{font-size:20px;}
 button,select,input{font-size:19px;}
 }
+
 </style>
 </head>
 
 <body>
 
 <div style="padding:10px;">
-<button onclick="goProjects()">← 返回项目大厅</button>
+  <button onclick="goProjects()">← 返回项目大厅</button>
 </div>
-
 <h1 id="pageTitle" style="text-align:center;">忽略标题</h1>
 
 <div class="container">
@@ -47,109 +80,107 @@ var currentVolume = Number(localStorage.getItem("currentVolume")) || 0;
 var currentChapter = Number(localStorage.getItem("currentChapter")) || 0;
 
 var data;
-var currentPid=null;
-
-
-/* ===== ⭐ 数据统一修复层 ===== */
-
-function normalizeData(d){
-
-if(!d || typeof d!=="object"){
-d={preset:"",world:"",outline:"",characters:[],volumes:[]};
-}
-
-if(!Array.isArray(d.characters)) d.characters=[];
-if(!Array.isArray(d.volumes)) d.volumes=[];
-
-/* 角色至少存在一个 */
-if(d.characters.length===0){
-d.characters.push({name:"",importance:"",identity:"",personality:"",relations:"",traits:""});
-}
-
-/* 卷至少存在一个 */
-if(d.volumes.length===0){
-d.volumes.push({
-desc:"",
-characterArc:"",
-startState:"",
-goal:"",
-events:"",
-endState:"",
-chapterCount:1,
-chapters:[{summary:"",scene:"",beats:"",text:""}]
-});
-}
-
-/* 修复每卷结构 */
-d.volumes.forEach(v=>{
-if(!Array.isArray(v.chapters)) v.chapters=[];
-if(v.chapters.length===0){
-v.chapters=[{summary:"",scene:"",beats:"",text:""}];
-}
-});
-
-/* 修复索引越界 */
-if(currentCharacter>=d.characters.length) currentCharacter=0;
-if(currentVolume>=d.volumes.length) currentVolume=0;
-if(currentChapter>=d.volumes[currentVolume].chapters.length) currentChapter=0;
-
-return d;
-}
-
-
-/* ===== 加载项目 ===== */
+var currentPid = null;
 
 function loadProjectData(){
 
-var params=new URLSearchParams(window.location.search);
-currentPid=params.get("pid");
+  var params = new URLSearchParams(window.location.search);
+  currentPid = params.get("pid");
 
-if(currentPid){
+  if(currentPid){
 
-var projects=JSON.parse(localStorage.getItem("projects"))||{};
+    var projects = JSON.parse(localStorage.getItem("projects")) || {};
 
-if(!projects[currentPid]){
-projects[currentPid]={name:"未命名项目",updated:Date.now(),data:null};
+    if(!projects[currentPid]){
+      projects[currentPid] = {
+        name:"未命名项目",
+        updated:Date.now(),
+        data:{
+          preset:"",
+          world:"",
+          outline:"",
+          characters:[],
+          volumes:[]
+        }
+      };
+    }
+
+    if(!projects[currentPid].data){
+      projects[currentPid].data = {
+        preset:"",
+        world:"",
+        outline:"",
+        characters:[],
+        volumes:[]
+      };
+    }
+
+    data = projects[currentPid].data;
+
+    localStorage.setItem("projects",JSON.stringify(projects));
+
+  }else{
+
+    try{
+      data = JSON.parse(localStorage.getItem("data"));
+    }catch(e){
+      data = null;
+    }
+
+  }
+
+  if(!data || typeof data!=="object"){
+    data={
+      preset:"",
+      world:"",
+      outline:"",
+      characters:[],
+      volumes:[]
+    };
+  }
+
+  if(!Array.isArray(data.characters)) data.characters=[];
+  if(!Array.isArray(data.volumes)) data.volumes=[];
 }
-
-data=normalizeData(projects[currentPid].data);
-
-projects[currentPid].data=data;
-localStorage.setItem("projects",JSON.stringify(projects));
-
-}else{
-
-try{ data=JSON.parse(localStorage.getItem("data")); }
-catch(e){ data=null; }
-
-data=normalizeData(data);
-}
-
-}
-
 
 /* ===== 保存 ===== */
 
 function save(){
 
-localStorage.setItem("stage",stage);
-localStorage.setItem("currentCharacter",currentCharacter);
-localStorage.setItem("currentVolume",currentVolume);
-localStorage.setItem("currentChapter",currentChapter);
+  localStorage.setItem("stage",stage);
+  localStorage.setItem("currentCharacter",currentCharacter);
+  localStorage.setItem("currentVolume",currentVolume);
+  localStorage.setItem("currentChapter",currentChapter);
 
-if(currentPid){
+  if(currentPid){
 
-var projects=JSON.parse(localStorage.getItem("projects"))||{};
-projects[currentPid].data=data;
-projects[currentPid].updated=Date.now();
+    var projects = JSON.parse(localStorage.getItem("projects")) || {};
+
+    if(!projects[currentPid]){
+  projects[currentPid] = {
+    name:"未命名作品",
+    updated:Date.now(),
+    data:{
+      preset:"",
+      world:"",
+      outline:"",
+      characters:[],
+      volumes:[]
+    }
+  };
+}
+
+projects[currentPid].data = data;
+projects[currentPid].updated = Date.now();
 localStorage.setItem("projects",JSON.stringify(projects));
 
-}else{
-localStorage.setItem("data",JSON.stringify(data));
-}
+  }else{
+
+    localStorage.setItem("data",JSON.stringify(data));
+
+  }
 
 }
-
 
 /* ===== 清理 ===== */
 
@@ -222,6 +253,17 @@ return;
 
 if(stage==="characters"){
 
+if(data.characters.length===0){
+data.characters.push({
+name:"",
+importance:"",
+identity:"",
+personality:"",
+relations:"",
+traits:""
+});
+}
+
 var c=data.characters[currentCharacter];
 
 var options=data.characters.map((ch,i)=>{
@@ -273,7 +315,7 @@ return;
 }
 
 
-/* ===== 卷纲 ===== */
+/* ===== 卷纲（最终高级版） ===== */
 
 if(stage==="volume"){
 
@@ -283,25 +325,64 @@ var html=drawSteps()+`
 <button onclick="addVolume()">＋ 增加一卷</button>
 <button onclick="removeVolume()">－ 减少一卷</button><br><br>
 
+<button onclick="genAllVolumeDesc()">生成卷简介</button><br><br>
+
 当前工作卷：
 <select onchange="changeVolume(this.value)">
 ${data.volumes.map((_,i)=>`<option value="${i}" ${i===currentVolume?'selected':''}>第 ${i+1} 卷</option>`).join("")}
 </select>
+
 <hr>
 `;
 
 var v=data.volumes[currentVolume];
+if(!v){ app.innerHTML=html+"<p>请先创建卷。</p>"; return; }
 
 html+=`
+<b>第 ${currentVolume+1} 卷</b><br><br>
+
 卷简介
 <textarea style="height:120px"
-oninput="v.desc=this.value;save();"
+oninput="updateVolumeField(${currentVolume},'desc',this.value)"
 >${v.desc||""}</textarea><br><br>
+
+主要人物弧光
+<textarea style="height:90px"
+oninput="updateVolumeField(${currentVolume},'characterArc',this.value)"
+>${v.characterArc||""}</textarea><br><br>
+
+卷初状态
+<textarea style="height:70px"
+oninput="updateVolumeField(${currentVolume},'startState',this.value)"
+>${v.startState||""}</textarea><br><br>
+
+<button onclick="genVolumeGoal(${currentVolume})">生成目标计划</button><br><br>
+
+卷初目标计划
+<textarea style="height:70px"
+oninput="updateVolumeField(${currentVolume},'goal',this.value)"
+>${v.goal||""}</textarea><br><br>
+
+<hr>
+
+<button onclick="genVolumeEvents(${currentVolume})">生成事件节点</button><br><br>
+
+事件节点
+<textarea style="height:110px"
+oninput="updateVolumeField(${currentVolume},'events',this.value)"
+>${v.events||""}</textarea><br><br>
+
+卷末状态结算
+<textarea style="height:70px"
+oninput="updateVolumeField(${currentVolume},'endState',this.value)"
+>${v.endState||""}</textarea><br><br>
+
+<hr>
 
 章节数：
 <input type="number" min="1"
 value="${v.chapterCount||1}"
-onchange="v.chapterCount=this.value;save();"
+onchange="updateVolumeField(${currentVolume},'chapterCount',this.value)"
 ><br><br>
 
 <button onclick="genChapterOutline(${currentVolume})">生成章节概述</button>
@@ -312,11 +393,21 @@ return;
 }
 
 
-/* ===== 章节细纲 ===== */
+/* ===== 章节细纲（最终高级版） ===== */
 
 if(stage==="chapter"){
 
+if(data.volumes.length===0){
+app.innerHTML=drawSteps()+"<p>请先创建卷。</p>";
+return;
+}
+
 var v=data.volumes[currentVolume];
+
+if(!v.chapters || v.chapters.length===0){
+v.chapters=[{summary:"",scene:"",beats:"",text:""}];
+}
+
 var c=v.chapters[currentChapter];
 
 var volOptions=data.volumes.map((_,i)=>
@@ -333,7 +424,29 @@ app.innerHTML=drawSteps()+`
 第 <select onchange="changeVolume(this.value)">${volOptions}</select> 卷　
 第 <select onchange="changeChapter(this.value)">${chapOptions}</select> 章<br><br>
 
+章节概述
+<textarea rows="4"
+oninput="c.summary=this.value;save();"
+>${c.summary||""}</textarea><br><br>
+
+<button onclick="genScene()">场景拆分</button><br><br>
+
+场景拆分
+<textarea rows="4"
+oninput="c.scene=this.value;save();"
+>${c.scene||""}</textarea><br><br>
+
+<button onclick="genBeats()">生成剧情点</button><br><br>
+
+细纲剧情点
 <textarea rows="6"
+oninput="c.beats=this.value;save();"
+>${c.beats||""}</textarea><br><br>
+
+<button onclick="genText()">生成正文</button><br><br>
+
+正文
+<textarea style="height:600px"
 oninput="c.text=this.value;save();"
 >${c.text||""}</textarea>
 `;
@@ -358,11 +471,16 @@ save();draw();
 }
 
 function removeCharacter(){
-if(data.characters.length>1){
+if(data.characters.length>0){
 data.characters.splice(currentCharacter,1);
 currentCharacter=Math.max(0,currentCharacter-1);
 save();draw();
 }
+}
+
+function changeCharacter(i){
+currentCharacter=Number(i);
+save();draw();
 }
 
 function addVolume(){
@@ -381,11 +499,32 @@ save();draw();
 }
 
 function removeVolume(){
-if(data.volumes.length>1){
+if(data.volumes.length>0){
 data.volumes.pop();
 currentVolume=Math.max(0,currentVolume-1);
+}
 save();draw();
 }
+
+function updateVolumeField(i,k,v){data.volumes[i][k]=v;save();}
+
+function genAllVolumeDesc(){
+data.volumes.forEach((v,i)=>{
+v.desc="【第"+(i+1)+"卷简介】\n"+(data.outline||"");
+});
+save();draw();
+}
+
+function genVolumeGoal(i){
+data.volumes[i].goal="【卷初目标计划占位】";
+save();draw();
+}
+
+function genVolumeEvents(i){
+var v=data.volumes[i];
+v.events="【事件节点占位】";
+v.endState="【卷末状态结算占位】";
+save();draw();
 }
 
 function genChapterOutline(i){
@@ -395,26 +534,42 @@ for(let n=0;n<(v.chapterCount||1);n++){
 v.chapters.push({summary:"第"+(n+1)+"章概述",scene:"",beats:"",text:""});
 }
 save();
-draw();
 }
 
-function changeCharacter(i){currentCharacter=Number(i);save();draw();}
+function genScene(){
+var c=data.volumes[currentVolume].chapters[currentChapter];
+if(!c.scene){c.scene="【场景拆分占位】";save();draw();}
+}
+
+function genBeats(){
+var c=data.volumes[currentVolume].chapters[currentChapter];
+if(!c.beats){c.beats="【细纲剧情点占位】";save();draw();}
+}
+
+function genText(){
+var c=data.volumes[currentVolume].chapters[currentChapter];
+if(!c.text){c.text="【正文生成占位】";save();draw();}
+}
+
 function changeVolume(i){currentVolume=Number(i);currentChapter=0;save();draw();}
 function changeChapter(i){currentChapter=Number(i);save();draw();}
 
-function goProjects(){window.location.href="projects.html";}
+function goProjects(){
+  window.location.href = "projects.html";
+}
 
 function loadProjectTitle(){
-var params=new URLSearchParams(window.location.search);
-var pid=params.get("pid");
-if(!pid) return;
+  var params = new URLSearchParams(window.location.search);
+  var pid = params.get("pid");
+  if(!pid) return;
 
-try{
-var projects=JSON.parse(localStorage.getItem("projects"))||{};
-if(projects[pid]&&projects[pid].name){
-document.getElementById("pageTitle").innerText="《"+projects[pid].name+"》";
-}
-}catch(e){}
+  try{
+    var projects = JSON.parse(localStorage.getItem("projects")) || {};
+    if(projects[pid] && projects[pid].name){
+      document.getElementById("pageTitle").innerText =
+        "《" + projects[pid].name + "》";
+    }
+  }catch(e){}
 }
 
 loadProjectData();
