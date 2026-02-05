@@ -211,7 +211,7 @@ function loadProjectData(){
   }else{
 
     try{
-      data = JSON.parse(localStorage.getItem("data"));
+      data = normalizeData(JSON.parse(localStorage.getItem("data")));
     }catch(e){
       data = null;
     }
