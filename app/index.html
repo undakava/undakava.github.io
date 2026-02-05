@@ -82,6 +82,95 @@ var currentChapter = Number(localStorage.getItem("currentChapter")) || 0;
 var data;
 var currentPid = null;
 
+function normalizeData(d){
+
+if(!d || typeof d!=="object"){
+d={preset:"",world:"",outline:"",characters:[],volumes:[]};
+}
+
+if(!Array.isArray(d.characters)) d.characters=[];
+if(!Array.isArray(d.volumes)) d.volumes=[];
+
+/* 角色骨架 */
+d.characters=d.characters.map(c=>({
+name:c?.name||"",
+importance:c?.importance||"",
+identity:c?.identity||"",
+personality:c?.personality||"",
+relations:c?.relations||"",
+traits:c?.traits||""
+}));
+
+if(d.characters.length===0){
+d.characters.push({
+name:"",
+importance:"",
+identity:"",
+personality:"",
+relations:"",
+traits:""
+});
+}
+
+/* 卷骨架 */
+d.volumes=d.volumes.map(v=>{
+v=v||{};
+if(!Array.isArray(v.chapters)) v.chapters=[];
+
+v.chapters=v.chapters.map(ch=>({
+summary:ch?.summary||"",
+scene:ch?.scene||"",
+beats:ch?.beats||"",
+text:ch?.text||""
+}));
+
+if(v.chapters.length===0){
+v.chapters.push({summary:"",scene:"",beats:"",text:""});
+}
+
+return {
+desc:v.desc||"",
+characterArc:v.characterArc||"",
+startState:v.startState||"",
+goal:v.goal||"",
+events:v.events||"",
+endState:v.endState||"",
+chapterCount:v.chapterCount||"1",
+chapters:v.chapters
+};
+});
+
+if(d.volumes.length===0){
+d.volumes.push({
+desc:"",
+characterArc:"",
+startState:"",
+goal:"",
+events:"",
+endState:"",
+chapterCount:"1",
+chapters:[{summary:"",scene:"",beats:"",text:""}]
+});
+}
+
+/* 索引保护 */
+if(typeof currentCharacter!=="number") currentCharacter=0;
+if(typeof currentVolume!=="number") currentVolume=0;
+if(typeof currentChapter!=="number") currentChapter=0;
+
+if(currentCharacter>=d.characters.length) currentCharacter=0;
+if(currentVolume>=d.volumes.length) currentVolume=0;
+
+if(
+d.volumes[currentVolume] &&
+currentChapter>=d.volumes[currentVolume].chapters.length
+){
+currentChapter=0;
+}
+
+return d;
+}
+
 function loadProjectData(){
 
   var params = new URLSearchParams(window.location.search);
