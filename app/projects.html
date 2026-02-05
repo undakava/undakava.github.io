@@ -103,12 +103,33 @@ function createProject(){
     name:"未命名作品",
     updated:Date.now(),
     data:{
-      preset:"",
-      world:"",
-      outline:"",
-      characters:[],
-      volumes:[]
-    }
+  preset:"",
+  world:"",
+  outline:"",
+  characters:[{
+    name:"",
+    importance:"",
+    identity:"",
+    personality:"",
+    relations:"",
+    traits:""
+  }],
+  volumes:[{
+    desc:"",
+    characterArc:"",
+    startState:"",
+    goal:"",
+    events:"",
+    endState:"",
+    chapterCount:"1",
+    chapters:[{
+      summary:"",
+      scene:"",
+      beats:"",
+      text:""
+    }]
+  }]
+}
   };
 
   saveProjects(projects);
