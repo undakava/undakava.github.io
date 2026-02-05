@@ -204,7 +204,7 @@ function loadProjectData(){
       };
     }
 
-    data = projects[currentPid].data;
+    data = normalizeData(projects[currentPid].data);
 
     localStorage.setItem("projects",JSON.stringify(projects));
 
