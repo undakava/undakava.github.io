@@ -143,6 +143,20 @@ function loadProjectData(){
   if(!Array.isArray(data.volumes)) data.volumes=[];
 }
 
+if(currentCharacter >= data.characters.length){
+  currentCharacter = 0;
+}
+
+if(currentVolume >= data.volumes.length){
+  currentVolume = 0;
+}
+
+if(
+  data.volumes[currentVolume] &&
+  currentChapter >= data.volumes[currentVolume].chapters.length
+){
+  currentChapter = 0;
+}
 
 /* ===== 保存 ===== */
 
