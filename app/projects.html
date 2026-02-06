@@ -227,6 +227,64 @@ function exportAllProjects(){
 
 }
 
+function importProjects(){
+
+  var input = document.createElement("input");
+  input.type = "file";
+  input.accept = ".json";
+
+  input.onchange = function(e){
+
+    var file = e.target.files[0];
+    if(!file) return;
+
+    var reader = new FileReader();
+
+    reader.onload = function(event){
+
+      try{
+
+        var imported = JSON.parse(event.target.result);
+
+        if(typeof imported !== "object"){
+          alert("文件格式错误");
+          return;
+        }
+
+        var existing = JSON.parse(localStorage.getItem("projects")) || {};
+
+        /* 合并项目（避免覆盖） */
+        Object.keys(imported).forEach(function(pid){
+
+          var newPid = pid;
+
+          /* 如果ID冲突就重新生成 */
+          if(existing[newPid]){
+            newPid = "p_"+Date.now()+"_"+Math.floor(Math.random()*1000);
+          }
+
+          existing[newPid] = imported[pid];
+
+        });
+
+        localStorage.setItem("projects", JSON.stringify(existing));
+
+        alert("导入成功！");
+        location.reload();
+
+      }catch(err){
+        alert("导入失败，文件损坏或格式错误");
+      }
+
+    };
+
+    reader.readAsText(file);
+
+  };
+
+  input.click();
+}
+
 draw();
 
 </script>
