@@ -203,6 +203,29 @@ function draw(){
 
 /* ===== 启动 ===== */
 
+
+function exportAllProjects(){
+
+  var projects = JSON.parse(localStorage.getItem("projects")) || {};
+
+  var dataStr = JSON.stringify(projects, null, 2);
+
+  var blob = new Blob([dataStr], {type:"application/json"});
+
+  var url = URL.createObjectURL(blob);
+
+  var a = document.createElement("a");
+  a.href = url;
+  a.download = "小说项目备份_"+Date.now()+".json";
+
+  document.body.appendChild(a);
+  a.click();
+
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+
+}
+
 draw();
 
 </script>
