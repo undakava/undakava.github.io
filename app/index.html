@@ -234,6 +234,16 @@ function loadProjectData(){
 
 /* ===== 保存 ===== */
 
+// ===== 防抖保存 =====
+let saveTimer = null;
+
+function scheduleSave(){
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(function(){
+    save();
+  }, 800); // 800毫秒后保存
+}
+
 function save(){
 
   localStorage.setItem("stage",stage);
