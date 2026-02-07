@@ -318,12 +318,12 @@ app.innerHTML=drawSteps()+`
 
 世界观<br>
 <textarea rows="6"
-oninput="data.world=this.value;save();"
+oninput="data.world=this.value;scheduleSave();"
 >${data.world||""}</textarea><br><br>
 
 脑洞生成<br>
 <textarea rows="6"
-oninput="data.preset=this.value;save();"
+oninput="data.preset=this.value;scheduleSave();"
 >${data.preset||""}</textarea><br>
 
 <button onclick="genIdea()">生成脑洞</button>
@@ -339,7 +339,7 @@ app.innerHTML=drawSteps()+`
 <b>全书大纲</b><br><br>
 
 <textarea rows="48"
-oninput="data.outline=this.value;save();"
+oninput="data.outline=this.value;scheduleSave();"
 >${data.outline||""}</textarea><br>
 
 <button onclick="genOutline()">生成全书大纲</button>
@@ -382,32 +382,32 @@ app.innerHTML=drawSteps()+`
 
 姓名<br>
 <textarea class="small"
-oninput="data.characters[currentCharacter].name=this.value;save();"
+oninput="data.characters[currentCharacter].name=this.value;scheduleSave();"
 >${c.name||""}</textarea><br><br>
 
 角色重要性<br>
 <textarea class="small"
-oninput="data.characters[currentCharacter].importance=this.value;save();"
+oninput="data.characters[currentCharacter].importance=this.value;scheduleSave();"
 >${c.importance||""}</textarea><br><br>
 
 性格<br>
 <textarea class="small"
-oninput="data.characters[currentCharacter].personality=this.value;save();"
+oninput="data.characters[currentCharacter].personality=this.value;scheduleSave();"
 >${c.personality||""}</textarea><br><br>
 
 身份<br>
 <textarea class="medium"
-oninput="data.characters[currentCharacter].identity=this.value;save();"
+oninput="data.characters[currentCharacter].identity=this.value;scheduleSave();"
 >${c.identity||""}</textarea><br><br>
 
 核心关系<br>
 <textarea class="medium"
-oninput="data.characters[currentCharacter].relations=this.value;save();"
+oninput="data.characters[currentCharacter].relations=this.value;scheduleSave();"
 >${c.relations||""}</textarea><br><br>
 
 人物特性<br>
 <textarea class="medium"
-oninput="data.characters[currentCharacter].traits=this.value;save();"
+oninput="data.characters[currentCharacter].traits=this.value;scheduleSave();"
 >${c.traits||""}</textarea>
 `;
 return;
@@ -525,28 +525,28 @@ app.innerHTML=drawSteps()+`
 
 章节概述
 <textarea rows="4"
-oninput="c.summary=this.value;save();"
+oninput="c.summary=this.value;scheduleSave();"
 >${c.summary||""}</textarea><br><br>
 
 <button onclick="genScene()">场景拆分</button><br><br>
 
 场景拆分
 <textarea rows="4"
-oninput="c.scene=this.value;save();"
+oninput="c.scene=this.value;scheduleSave();"
 >${c.scene||""}</textarea><br><br>
 
 <button onclick="genBeats()">生成剧情点</button><br><br>
 
 细纲剧情点
 <textarea rows="6"
-oninput="c.beats=this.value;save();"
+oninput="c.beats=this.value;scheduleSave();"
 >${c.beats||""}</textarea><br><br>
 
 <button onclick="genText()">生成正文</button><br><br>
 
 正文
 <textarea style="height:600px"
-oninput="c.text=this.value;save();"
+oninput="c.text=this.value;scheduleSave();"
 >${c.text||""}</textarea>
 `;
 
