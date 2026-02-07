@@ -536,28 +536,28 @@ app.innerHTML=drawSteps()+`
 
 章节概述
 <textarea rows="4"
-oninput="c.summary=this.value;scheduleSave();"
+oninput="data.volumes[currentVolume].chapters[currentChapter].summary=this.value;scheduleSave();"
 >${c.summary||""}</textarea><br><br>
 
 <button onclick="genScene()">场景拆分</button><br><br>
 
 场景拆分
 <textarea rows="4"
-oninput="c.scene=this.value;scheduleSave();"
+oninput="data.volumes[currentVolume].chapters[currentChapter].scene=this.value;scheduleSave();"
 >${c.scene||""}</textarea><br><br>
 
 <button onclick="genBeats()">生成剧情点</button><br><br>
 
 细纲剧情点
 <textarea rows="6"
-oninput="c.beats=this.value;scheduleSave();"
+oninput="data.volumes[currentVolume].chapters[currentChapter].beats=this.value;scheduleSave();"
 >${c.beats||""}</textarea><br><br>
 
 <button onclick="genText()">生成正文</button><br><br>
 
 正文
 <textarea style="height:600px"
-oninput="c.text=this.value;scheduleSave();"
+oninput="data.volumes[currentVolume].chapters[currentChapter].text=this.value;scheduleSave();"
 >${c.text||""}</textarea>
 `;
 
