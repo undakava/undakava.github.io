@@ -697,6 +697,23 @@ async function callAI(prompt){
   return data.text;
 }
 
+let aiConfirmCallback=null;
+
+function showAIConfirm(text,callback){
+  document.getElementById("aiConfirmText").innerText=text;
+  document.getElementById("aiConfirmModal").style.display="flex";
+  aiConfirmCallback=callback;
+}
+
+function aiConfirmCancel(){
+  document.getElementById("aiConfirmModal").style.display="none";
+}
+
+function aiConfirmOk(){
+  document.getElementById("aiConfirmModal").style.display="none";
+  if(aiConfirmCallback) aiConfirmCallback();
+}
+
 loadProjectData();
 loadProjectTitle();
 draw();
