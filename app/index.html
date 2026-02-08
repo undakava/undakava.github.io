@@ -657,8 +657,25 @@ if(!c.beats){c.beats="【细纲剧情点占位】";save();draw();}
 }
 
 function genText(){
+
 var c=data.volumes[currentVolume].chapters[currentChapter];
-if(!c.text){c.text="【正文生成占位】";save();draw();}
+
+if(c.text && c.text.trim()!==""){
+  showAIConfirm("正文已有内容，确定覆盖吗？", function(){
+    genTextReal();
+  });
+  return;
+}
+
+genTextReal();
+}
+
+function genTextReal(){
+var c=data.volumes[currentVolume].chapters[currentChapter];
+
+c.text="【正文生成占位】";
+save();
+draw();
 }
 
 function changeVolume(i){currentVolume=Number(i);currentChapter=0;save();draw();}
