@@ -27,7 +27,7 @@ textarea{
   line-height: 1.9;   /* 提高阅读舒适度 */
   letter-spacing: 0.5px;
 
-  padding: 6px 14px 14px 14px;
+  padding: 4px 14px 14px 14px;
 
   border: 1px solid #cfe7d0;
   border-radius: 6px;
@@ -128,7 +128,7 @@ input{
 textarea[style*="height:600px"]{
   font-size: 19px;
   line-height: 2.0;
-  padding: 8px 18px 18px 18px;
+  padding: 4px 18px 18px 18px;
 }
 
 
