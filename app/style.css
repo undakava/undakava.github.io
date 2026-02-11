@@ -1,17 +1,19 @@
 /* ===== 基础页面样式 ===== */
 
 body{
-  font-family: sans-serif;
+  font-family: "Microsoft YaHei", "PingFang SC", sans-serif;
   font-size: 18px;
+  background: #f7f7f7;
+  color: #222;
 }
 
 
-/* ===== 主容器布局 ===== */
+/* ===== 主容器布局（优化阅读宽度） ===== */
 
 .container{
-  max-width: 900px;
+  max-width: 820px;   /* 更接近专业阅读宽度 */
   margin: 0 auto;
-  padding: 10px;
+  padding: 20px;
 }
 
 
@@ -20,45 +22,87 @@ body{
 textarea{
   width: 100%;
   box-sizing: border-box;
+
   font-size: 18px;
-  line-height: 1.6;
-  padding: 6px;
+  line-height: 1.9;   /* 提高阅读舒适度 */
+  letter-spacing: 0.5px;
+
+  padding: 14px;
+
+  border: 1px solid #ddd;
+  border-radius: 6px;
+
+  background: #fff;
+
+  resize: vertical;
+
+  transition: all 0.2s ease;
 }
 
 
-/* ===== 按钮样式 ===== */
+/* ⭐ 写作专注状态（点击输入时） */
+
+textarea:focus{
+  outline: none;
+  border-color: #6aa9ff;
+  box-shadow: 0 0 6px rgba(106,169,255,0.25);
+}
+
+
+
+/* ===== 按钮样式（更现代化） ===== */
 
 button{
   margin: 6px 6px 6px 0;
-  font-size: 17px;
-  padding: 6px 12px;
+  font-size: 16px;
+  padding: 7px 14px;
+
+  border-radius: 5px;
+  border: 1px solid #ccc;
+
+  background: #fafafa;
+  cursor: pointer;
+
+  transition: all 0.15s ease;
 }
+
+button:hover{
+  background: #f0f0f0;
+}
+
 
 
 /* ===== 下拉框 & 输入框 ===== */
 
 select,
 input{
-  font-size: 17px;
+  font-size: 16px;
+  padding: 4px 6px;
 }
 
 
-/* ===== 危险操作按钮（如删除） ===== */
+
+/* ===== 危险操作按钮 ===== */
 
 .clear-btn{
   background: #f66;
   color: #fff;
-  padding: 6px 12px;
   border: none;
   border-radius: 4px;
 }
+
+.clear-btn:hover{
+  background: #e05050;
+}
+
 
 
 /* ===== 分区间距控制 ===== */
 
 .section{
-  margin: 16px 0;
+  margin: 20px 0;
 }
+
 
 
 /* ===== 小型输入控件 ===== */
@@ -69,6 +113,7 @@ input{
 }
 
 
+
 /* ===== 中型输入控件 ===== */
 
 .medium{
@@ -77,22 +122,38 @@ input{
 }
 
 
+
+/* ===== 写作正文区域优化（长文本专用） ===== */
+
+textarea[style*="height:600px"]{
+  font-size: 19px;
+  line-height: 2.0;
+  padding: 18px;
+}
+
+
+
 /* ===== 移动端适配 ===== */
 
 @media (max-width: 768px){
 
   body{
-    font-size: 20px;
+    font-size: 19px;
   }
 
   textarea{
-    font-size: 20px;
+    font-size: 19px;
+    line-height: 1.9;
   }
 
   button,
   select,
   input{
-    font-size: 19px;
+    font-size: 18px;
+  }
+
+  .container{
+    padding: 12px;
   }
 
 }
