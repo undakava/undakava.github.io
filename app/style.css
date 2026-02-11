@@ -27,7 +27,7 @@ textarea{
   line-height: 1.9;   /* 提高阅读舒适度 */
   letter-spacing: 0.5px;
 
-  padding: 14px;
+  padding: 6px 14px 14px 14px;
 
   border: 1px solid #ddd;
   border-radius: 6px;
