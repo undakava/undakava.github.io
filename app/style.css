@@ -3,8 +3,8 @@
 body{
   font-family: "Microsoft YaHei", "PingFang SC", sans-serif;
   font-size: 18px;
-  background: #f7f7f7;
-  color: #222;
+  background: #e8f5e9;   /* 浅绿色页面背景 */
+  color: #111;
 }
 
 
@@ -29,10 +29,10 @@ textarea{
 
   padding: 6px 14px 14px 14px;
 
-  border: 1px solid #ddd;
+  border: 1px solid #cfe7d0;
   border-radius: 6px;
 
-  background: #fff;
+  background: #f1fbf2;   /* 更浅的浅绿色文本区 */
 
   resize: vertical;
 
