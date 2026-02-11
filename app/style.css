@@ -125,7 +125,7 @@ input{
 
 /* ===== 写作正文区域优化（长文本专用） ===== */
 
-textarea[style*="height:900px"]{
+textarea[style*="height:600px"]{
   font-size: 19px;
   line-height: 2.0;
   padding: 8px 18px 18px 18px;
