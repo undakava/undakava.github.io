@@ -266,13 +266,13 @@ if(stage==="preset"){
 app.innerHTML=drawSteps()+`
 <b>前期设定</b><br><br>
 
-世界观<br>
+创意概述<br>
 <textarea rows="6"
 oninput="data.world=this.value;scheduleSave();"
 >${data.world||""}</textarea><br><br>
 
-脑洞生成<br>
-<textarea rows="6"
+脑洞及骨架生成<br>
+<textarea rows="12"
 oninput="data.preset=this.value;scheduleSave();"
 >${data.preset||""}</textarea><br>
 
