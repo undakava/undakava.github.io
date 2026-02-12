@@ -506,7 +506,7 @@ oninput="data.volumes[currentVolume].chapters[currentChapter].beats=this.value;s
 <button onclick="genText()">生成正文</button><br><br>
 
 正文
-<textarea style="height:600px"
+<textarea rows="48"
 oninput="data.volumes[currentVolume].chapters[currentChapter].text=this.value;scheduleSave();"
 >${c.text||""}</textarea>
 `;
