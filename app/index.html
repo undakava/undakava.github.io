@@ -543,7 +543,28 @@ async function genIdea(){
 
 }
 
-function genOutline(){data.outline="【全书大纲生成占位】";save();draw();}
+async function genOutline(){
+
+  var prompt =
+    "根据以下小说设定与脑洞，生成完整的全书结构大纲。\n\n" +
+    "【小说设定】\n" + (data.preset || "") + "\n\n";
+
+  try{
+
+    const text = await callAI(prompt);
+
+    data.outline = text;
+
+    save();
+    draw();
+
+  }catch(err){
+
+    alert("AI调用失败: " + err.message);
+
+  }
+
+}
 
 function addCharacter(){
 data.characters.push({name:"",importance:"",identity:"",personality:"",relations:"",traits:""});
