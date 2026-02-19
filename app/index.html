@@ -625,22 +625,13 @@ async function genTextReal(){
 
   var c = data.volumes[currentVolume].chapters[currentChapter];
 
-  // 你可以自由组合 prompt，这里先用章节摘要做测试
   var prompt = "根据以下章节概要写一段小说正文：\n\n" + c.summary;
 
   try{
 
-    const response = await fetch("http://localhost:3000/ai", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({ prompt })
-    });
+    const text = await callAI(prompt);
 
-    const result = await response.json();
-
-    c.text = (c.text || "") + "\n\n" + result.text;
+    c.text = (c.text || "") + "\n\n" + text;
 
     save();
     draw();
