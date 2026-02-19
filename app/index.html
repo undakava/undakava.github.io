@@ -640,7 +640,7 @@ async function genTextReal(){
 
     const result = await response.json();
 
-    c.text = result.text;
+    c.text = (c.text || "") + "\n\n" + result.text;
 
     save();
     draw();
