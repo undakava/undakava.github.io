@@ -621,12 +621,36 @@ if(c.text && c.text.trim()!==""){
 genTextReal();
 }
 
-function genTextReal(){
-var c=data.volumes[currentVolume].chapters[currentChapter];
+async function genTextReal(){
 
-c.text="【正文生成占位】";
-save();
-draw();
+  var c = data.volumes[currentVolume].chapters[currentChapter];
+
+  // 你可以自由组合 prompt，这里先用章节摘要做测试
+  var prompt = "根据以下章节概要写一段小说正文：\n\n" + c.summary;
+
+  try{
+
+    const response = await fetch("http://localhost:3000/ai", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ prompt })
+    });
+
+    const result = await response.json();
+
+    c.text = result.text;
+
+    save();
+    draw();
+
+  }catch(err){
+
+    alert("AI调用失败: " + err.message);
+
+  }
+
 }
 
 function changeVolume(i){currentVolume=Number(i);currentChapter=0;save();draw();}
