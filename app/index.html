@@ -522,7 +522,27 @@ return;
 
 function jump(s){stage=s;save();draw();}
 
-function genIdea(){data.preset="【脑洞生成占位】";save();draw();}
+async function genIdea(){
+
+  var prompt = "根据以下创意概述，扩展成完整的小说设定与核心脑洞：\n\n" + (data.world || "");
+
+  try{
+
+    const text = await callAI(prompt);
+
+    data.preset = text;
+
+    save();
+    draw();
+
+  }catch(err){
+
+    alert("AI调用失败: " + err.message);
+
+  }
+
+}
+
 function genOutline(){data.outline="【全书大纲生成占位】";save();draw();}
 
 function addCharacter(){
