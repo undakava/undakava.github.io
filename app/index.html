@@ -732,6 +732,39 @@ async function genVolumeEvents(i){
 
 }
 
+async function genVolumeEndState(i){
+
+  try{
+
+    var v = data.volumes[i];
+
+    if(!v.events || v.events.trim()===""){
+      alert("请先生成事件节点。");
+      return;
+    }
+
+    var prompt =
+      "根据以下信息，总结主角在本卷结束时的状态变化。\n\n" +
+      "【卷简介】\n" + (v.desc||"") + "\n\n" +
+      "【本卷最终收获】\n" + (v.goal||"") + "\n\n" +
+      "【事件节点】\n" + v.events + "\n\n" +
+      "请不要复述剧情，而是总结主角在本卷结束时的心理、立场、能力或关系变化。\n";
+
+    const text = await callAI(prompt);
+
+    v.endState = text;
+
+    save();
+    draw();
+
+  }catch(err){
+
+    alert("AI调用失败: " + err.message);
+
+  }
+
+}
+
 function genChapterOutline(i){
 var v=data.volumes[i];
 v.chapters=[];
