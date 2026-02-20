@@ -790,13 +790,68 @@ async function genVolumeEndState(i){
 
 }
 
-function genChapterOutline(i){
-var v=data.volumes[i];
-v.chapters=[];
-for(let n=0;n<(v.chapterCount||1);n++){
-v.chapters.push({summary:"第"+(n+1)+"章概述",scene:"",beats:"",text:""});
-}
-save();
+async function genChapterOutline(i){
+
+  try{
+
+    var v = data.volumes[i];
+
+    if(!v.events || v.events.trim()===""){
+      alert("请先生成本卷事件节点。");
+      return;
+    }
+
+    var chapterCount = Number(v.chapterCount) || 1;
+
+    var prompt =
+      "根据以下本卷事件节点，将内容拆分为 " + chapterCount + " 章。\n\n" +
+
+      "【本卷事件节点】\n" + v.events + "\n\n" +
+
+      "要求：\n" +
+      "1. 每一章写一个章节概述。\n" +
+      "2. 每章概述控制在150字以内。\n" +
+      "3. 按时间顺序拆分。\n" +
+      "4. 不要写正文。\n\n" +
+
+      "输出格式：\n" +
+      "第1章：\n（概述）\n\n" +
+      "第2章：\n（概述）\n\n" +
+      "依次类推。";
+
+    const text = await callAI(prompt);
+
+    // 重新初始化章节数组
+    v.chapters = [];
+
+    for(let n=0;n<chapterCount;n++){
+
+      const regex = new RegExp(
+        "第" + (n+1) + "章：([\\s\\S]*?)(?=第" + (n+2) + "章：|$)"
+      );
+
+      const match = text.match(regex);
+
+      v.chapters.push({
+        summary: match ? match[1].trim() : "",
+        scene:"",
+        beats:"",
+        text:""
+      });
+
+    }
+
+    currentChapter = 0;
+
+    save();
+    draw();
+
+  }catch(err){
+
+    alert("AI调用失败: " + err.message);
+
+  }
+
 }
 
 function genScene(){
