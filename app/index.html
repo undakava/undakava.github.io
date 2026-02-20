@@ -422,6 +422,10 @@ oninput="updateVolumeField(${currentVolume},'goal',this.value)"
 oninput="updateVolumeField(${currentVolume},'events',this.value)"
 >${v.events||""}</textarea><br><br>
 
+<button onclick="genVolumeEndState(${currentVolume})">
+生成人物卷末状态
+</button><br><br>
+
 卷末状态结算
 <textarea style="height:70px"
 oninput="updateVolumeField(${currentVolume},'endState',this.value)"
