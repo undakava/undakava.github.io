@@ -656,9 +656,38 @@ async function genAllVolumeDesc(){
 
 }
 
-function genVolumeGoal(i){
-data.volumes[i].goal="【卷初目标计划占位】";
-save();draw();
+async function genVolumeGoal(i){
+
+  try{
+
+    var v = data.volumes[i];
+
+    if(!v.desc || v.desc.trim()===""){
+      alert("请先生成卷简介。");
+      return;
+    }
+
+    var prompt =
+      "根据以下卷简介，提炼本卷在剧情层面的最终收获。\n\n" +
+      "【卷简介】\n" + v.desc + "\n\n" +
+      "请明确说明：\n" +
+      "1. 本卷最终在情节层面达成了什么结果\n" +
+      "2. 局势发生了什么阶段性变化\n" +
+      "3. 为下一卷留下什么基础\n";
+
+    const text = await callAI(prompt);
+
+    v.goal = text;
+
+    save();
+    draw();
+
+  }catch(err){
+
+    alert("AI调用失败: " + err.message);
+
+  }
+
 }
 
 function genVolumeEvents(i){
