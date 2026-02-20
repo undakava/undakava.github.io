@@ -690,11 +690,42 @@ async function genVolumeGoal(i){
 
 }
 
-function genVolumeEvents(i){
-var v=data.volumes[i];
-v.events="【事件节点占位】";
-v.endState="【卷末状态结算占位】";
-save();draw();
+async function genVolumeEvents(i){
+
+  try{
+
+    var v = data.volumes[i];
+
+    if(!v.desc || v.desc.trim()===""){
+      alert("请先生成卷简介。");
+      return;
+    }
+
+    if(!v.goal || v.goal.trim()===""){
+      alert("请先生成本卷最终收获。");
+      return;
+    }
+
+    var prompt =
+      "根据以下信息，设计本卷的关键事件节点。\n\n" +
+      "【卷简介】\n" + v.desc + "\n\n" +
+      "【本卷最终收获】\n" + v.goal + "\n\n" +
+      "请按时间顺序列出本卷的主要事件节点，" +
+      "确保这些事件最终推动故事走向上述最终收获。\n";
+
+    const text = await callAI(prompt);
+
+    v.events = text;
+
+    save();
+    draw();
+
+  }catch(err){
+
+    alert("AI调用失败: " + err.message);
+
+  }
+
 }
 
 function genChapterOutline(i){
