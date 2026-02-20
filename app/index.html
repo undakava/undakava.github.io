@@ -897,9 +897,48 @@ async function genScene(){
 
 }
 
-function genBeats(){
-var c=data.volumes[currentVolume].chapters[currentChapter];
-if(!c.beats){c.beats="【细纲剧情点占位】";save();draw();}
+async function genBeats(){
+
+  try{
+
+    var c = data.volumes[currentVolume].chapters[currentChapter];
+
+    if(!c.scene || c.scene.trim()===""){
+      alert("请先生成场景拆分。");
+      return;
+    }
+
+    var prompt =
+      "根据以下内容，为本章生成固定 6 个剧情节拍（不要多也不要少）。\n\n" +
+
+      "【章节概述】\n" + (c.summary||"") + "\n\n" +
+
+      "【场景拆分】\n" + c.scene + "\n\n" +
+
+      "要求：\n" +
+      "1. 必须严格输出 6 个节拍。\n" +
+      "2. 每个节拍包含：行动、冲突或信息变化。\n" +
+      "3. 每个节拍必须产生推进或转折。\n" +
+      "4. 不要写正文，不要扩写描写。\n\n" +
+
+      "输出格式示例：\n" +
+      "Beat1：\n（内容）\n\n" +
+      "Beat2：\n（内容）\n\n" +
+      "依次到 Beat6。\n";
+
+    const text = await callAI(prompt);
+
+    c.beats = text;
+
+    save();
+    draw();
+
+  }catch(err){
+
+    alert("AI调用失败: " + err.message);
+
+  }
+
 }
 
 function genText(){
