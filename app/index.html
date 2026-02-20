@@ -957,15 +957,36 @@ genTextReal();
 
 async function genTextReal(){
 
-  var c = data.volumes[currentVolume].chapters[currentChapter];
-
-  var prompt = "根据以下章节概要写一段小说正文：\n\n" + c.summary;
-
   try{
+
+    var c = data.volumes[currentVolume].chapters[currentChapter];
+
+    if(!c.beats || c.beats.trim()===""){
+      alert("请先生成剧情节拍。");
+      return;
+    }
+
+    var prompt =
+      "请根据以下信息创作本章小说正文，字数控制在2200字左右。\n\n" +
+
+      "【章节概述】\n" + (c.summary||"") + "\n\n" +
+
+      "【场景拆分】\n" + (c.scene||"") + "\n\n" +
+
+      "【剧情节拍（必须严格按照6个节拍顺序推进）】\n" +
+      c.beats + "\n\n" +
+
+      "写作要求：\n" +
+      "1. 严格按照6个节拍顺序展开，不可跳跃。\n" +
+      "2. 每个节拍必须体现在正文推进中。\n" +
+      "3. 不要总结剧情，不要写说明性语言。\n" +
+      "4. 使用小说叙事方式，自然衔接场景。\n" +
+      "5. 结尾必须形成情绪或局势变化。\n" +
+      "6. 不要输出标题，不要写“Beat1”等字样。\n";
 
     const text = await callAI(prompt);
 
-    c.text = (c.text || "") + "\n\n" + text;
+    c.text = text;
 
     save();
     draw();
