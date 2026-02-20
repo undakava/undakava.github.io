@@ -854,9 +854,47 @@ async function genChapterOutline(i){
 
 }
 
-function genScene(){
-var c=data.volumes[currentVolume].chapters[currentChapter];
-if(!c.scene){c.scene="【场景拆分占位】";save();draw();}
+async function genScene(){
+
+  try{
+
+    var c = data.volumes[currentVolume].chapters[currentChapter];
+
+    if(!c.summary || c.summary.trim()===""){
+      alert("请先生成章节概述。");
+      return;
+    }
+
+    var prompt =
+      "根据以下章节概述，将内容拆分为3-5个场景。\n\n" +
+
+      "【章节概述】\n" + c.summary + "\n\n" +
+
+      "每个场景请包含：\n" +
+      "1. 时间/地点\n" +
+      "2. 出场人物\n" +
+      "3. 场景目标\n" +
+      "4. 冲突核心\n" +
+      "5. 场景结果变化\n\n" +
+
+      "输出格式示例：\n" +
+      "场景1：\n（内容）\n\n" +
+      "场景2：\n（内容）\n\n" +
+      "依次类推。\n";
+
+    const text = await callAI(prompt);
+
+    c.scene = text;
+
+    save();
+    draw();
+
+  }catch(err){
+
+    alert("AI调用失败: " + err.message);
+
+  }
+
 }
 
 function genBeats(){
