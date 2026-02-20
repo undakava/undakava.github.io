@@ -743,12 +743,37 @@ async function genVolumeEndState(i){
       return;
     }
 
+    if(!v.startState || v.startState.trim()===""){
+      alert("请填写卷初状态。");
+      return;
+    }
+
+    if(!v.characterArc || v.characterArc.trim()===""){
+      alert("请填写主要人物弧光。");
+      return;
+    }
+
     var prompt =
-      "根据以下信息，总结主角在本卷结束时的状态变化。\n\n" +
+      "你正在进行人物结构推导。\n\n" +
+
       "【卷简介】\n" + (v.desc||"") + "\n\n" +
-      "【本卷最终收获】\n" + (v.goal||"") + "\n\n" +
+
+      "【卷初状态】\n" + v.startState + "\n\n" +
+
+      "【主要人物弧光】\n" + v.characterArc + "\n\n" +
+
       "【事件节点】\n" + v.events + "\n\n" +
-      "请不要复述剧情，而是总结主角在本卷结束时的心理、立场、能力或关系变化。\n";
+
+      "任务：\n" +
+      "基于卷初状态，在人物弧光方向指引下，" +
+      "结合事件节点带来的冲击，" +
+      "推导主角在本卷结束时形成的新稳定状态。\n\n" +
+
+      "要求：\n" +
+      "1. 不复述剧情。\n" +
+      "2. 不总结事件。\n" +
+      "3. 只描述人物最终的心理、立场、能力或关系变化。\n" +
+      "4. 这是人物层结果，而不是剧情奖励。\n";
 
     const text = await callAI(prompt);
 
