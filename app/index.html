@@ -610,11 +610,50 @@ save();draw();
 
 function updateVolumeField(i,k,v){data.volumes[i][k]=v;save();}
 
-function genAllVolumeDesc(){
-data.volumes.forEach((v,i)=>{
-v.desc="【第"+(i+1)+"卷简介】\n"+(data.outline||"");
-});
-save();draw();
+async function genAllVolumeDesc(){
+
+  try{
+
+    const totalVolumes = data.volumes.length;
+
+    if(totalVolumes === 0){
+      alert("请先创建卷。");
+      return;
+    }
+
+    var prompt =
+      "根据以下全书大纲，将小说划分为 " + totalVolumes + " 卷。\n\n" +
+      "【全书大纲】\n" + (data.outline || "") + "\n\n" +
+      "请按以下格式依次输出每一卷简介：\n\n" +
+      "第1卷：\n（简介内容）\n\n" +
+      "第2卷：\n（简介内容）\n\n" +
+      "依次类推，不要省略。";
+
+    const text = await callAI(prompt);
+
+    // 解析每一卷内容
+    for(let i=0;i<totalVolumes;i++){
+
+      const regex = new RegExp(
+        "第" + (i+1) + "卷：([\\s\\S]*?)(?=第" + (i+2) + "卷：|$)"
+      );
+
+      const match = text.match(regex);
+
+      if(match){
+        data.volumes[i].desc = match[1].trim();
+      }
+    }
+
+    save();
+    draw();
+
+  }catch(err){
+
+    alert("AI调用失败: " + err.message);
+
+  }
+
 }
 
 function genVolumeGoal(i){
