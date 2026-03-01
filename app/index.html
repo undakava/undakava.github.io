@@ -23,7 +23,11 @@
 <script src="core.js"></script>
 <script>
 
-/* ===== 初始化 ===== */
+if(sessionStorage.getItem("auth") !== "1"){
+  window.location.replace("login.html");
+}
+
+  /* ===== 初始化 ===== */
 
 var stage = localStorage.getItem("stage") || "preset";
 var currentCharacter = Number(localStorage.getItem("currentCharacter")) || 0;
