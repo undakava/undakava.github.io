@@ -80,6 +80,11 @@ button{
 
 <script>
 
+/* ===== 登录验证 ===== */
+if(sessionStorage.getItem("auth") !== "1"){
+  window.location.replace("login.html");
+}
+
 /* ===== 项目存储 ===== */
 
 function loadProjects(){
