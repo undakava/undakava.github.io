@@ -405,6 +405,21 @@ oninput="updateVolumeField(${currentVolume},'desc',this.value)"
 oninput="updateVolumeField(${currentVolume},'characterArc',this.value)"
 >${v.characterArc||""}</textarea><br><br>
 
+html += `
+<h3>本卷主要角色（多选）</h3>
+<div id="volumeCharacters${currentVolume}">`;
+
+characters.forEach((c,i)=>{
+    html += `
+    <label>
+        <input type="checkbox" 
+               onchange="updateVolumeCharacters(${currentVolume},'${c.name}',this.checked)">
+        ${c.name} (${c.role})
+    </label><br>`;
+});
+
+html += `</div><br><br>`;
+
 <hr>
 
 <button onclick="genVolumeEvents(${currentVolume})">生成事件节点</button><br><br>
@@ -943,6 +958,20 @@ function aiConfirmOk(){
   if(aiConfirmCallback) aiConfirmCallback();
 }
 
+  function updateVolumeCharacters(volumeIndex, characterName, checked){
+    let v = data.volumes[volumeIndex];
+    if(!v.selectedCharacters) v.selectedCharacters = [];
+
+    if(checked){
+        if(!v.selectedCharacters.includes(characterName))
+            v.selectedCharacters.push(characterName);
+    } else {
+        v.selectedCharacters = v.selectedCharacters.filter(c => c !== characterName);
+    }
+
+    console.log(`卷 ${volumeIndex} 当前选中角色:`, v.selectedCharacters);
+}
+  
 loadProjectData();
 loadProjectTitle();
 draw();
