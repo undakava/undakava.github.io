@@ -22,7 +22,7 @@
 
 <script src="prompts.js"></script>
 <script src="core.js"></script>
-
+<script src="consistency.js"></script>
   
 <script>
 
@@ -796,6 +796,19 @@ async function genTextReal(){
 var characters = await loadCharacterMemory();
 var world = await loadWorldMemory();
 var history = await loadStoryMemory();
+
+/* ===============================
+   剧情一致性检查
+================================= */
+
+var checkPrompt = await buildConsistencyPrompt(summary,scene,beats);
+
+console.log("剧情一致性检查 Prompt:", checkPrompt);
+
+
+/* ===============================
+   最终正文 Prompt
+================================= */
 
 var prompt = `
 【世界观】
