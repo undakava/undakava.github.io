@@ -828,6 +828,16 @@ ${PROMPT_TEXT(summary,scene,beats)}
 
     c.text = text;
 
+/* ===============================
+   自动剧情摘要
+================================= */
+
+var summaryPrompt = buildChapterSummaryPrompt(result);
+
+var chapterSummary = await callAI(summaryPrompt);
+
+await saveChapterSummary(chapterSummary);
+
     save();
     draw();
 
