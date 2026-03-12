@@ -202,6 +202,8 @@ function scheduleSave(){
 
 function save(){
 
+saveCharacterMemory(data.characters);
+
   localStorage.setItem("stage",stage);
   localStorage.setItem("currentCharacter",currentCharacter);
   localStorage.setItem("currentVolume",currentVolume);
