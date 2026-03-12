@@ -32,7 +32,7 @@ ${chapterText}
 
 /* 写入剧情记忆 */
 
-async function saveChapterSummary(summary){
+async function saveChapterSummaryDB(summary){
 
  try{
 
