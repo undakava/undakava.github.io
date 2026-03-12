@@ -130,3 +130,44 @@ function lockCurrentPosition(){
     chapter: currentChapter
   };
 }
+
+
+/* ===========================
+   读取角色记忆
+   =========================== */
+
+async function loadCharacterMemory(){
+
+ const res = await fetch("memory/character_memory.json");
+ const data = await res.json();
+
+ return JSON.stringify(data);
+}
+
+
+
+/* ===========================
+   读取世界观
+   =========================== */
+
+async function loadWorldMemory(){
+
+ const res = await fetch("memory/world_memory.json");
+ const data = await res.json();
+
+ return JSON.stringify(data);
+}
+
+
+
+/* ===========================
+   读取剧情摘要
+   =========================== */
+
+async function loadStoryMemory(){
+
+ const res = await fetch("memory/chapter_summary_cache.json");
+ const data = await res.json();
+
+ return JSON.stringify(data);
+}
