@@ -30,6 +30,7 @@
 
 /* ===== 初始化 ===== */
 
+await initStoryDB();
 var stage = localStorage.getItem("stage") || "preset";
 var currentCharacter = Number(localStorage.getItem("currentCharacter")) || 0;
 var currentVolume = Number(localStorage.getItem("currentVolume")) || 0;
