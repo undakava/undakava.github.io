@@ -793,7 +793,22 @@ async function genTextReal(){
       return;
     }
 
-var prompt = PROMPT_TEXT(c.summary, c.scene, c.beats);
+var characters = await loadCharacterMemory();
+var world = await loadWorldMemory();
+var history = await loadStoryMemory();
+
+var prompt = `
+【世界观】
+${world}
+
+【角色设定】
+${characters}
+
+【历史剧情摘要】
+${history}
+
+${PROMPT_TEXT(summary,scene,beats)}
+`;
 
     const text = await callAI(prompt);
 
