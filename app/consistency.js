@@ -7,7 +7,7 @@ async function checkStoryConsistency(summary, scene, beats){
 
     const characters = await loadCharacterMemory();
     const world = await loadWorldMemory();
-    const history = await loadStoryMemory();
+    const history = await loadRecentSummaries(20);
 
     const prompt = `
 你是一个小说剧情逻辑检查专家。
