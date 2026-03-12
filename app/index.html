@@ -806,7 +806,7 @@ if(!history) history="";
    剧情一致性检查
 ================================= */
 
-var checkPrompt = await checkConsistencyPrompt(c.summary,c.scene,c.beats);
+var checkPrompt = await checkStoryConsistency(c.summary,c.scene,c.beats);
 
 console.log("剧情一致性检查 Prompt:", checkPrompt);
 
