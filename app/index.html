@@ -803,7 +803,7 @@ var history = await loadRecentSummaries(20);
    剧情一致性检查
 ================================= */
 
-var checkPrompt = await buildConsistencyPrompt(summary,scene,beats);
+var checkPrompt = await buildConsistencyPrompt(c.summary,c.scene,c.beats);
 
 console.log("剧情一致性检查 Prompt:", checkPrompt);
 
@@ -822,7 +822,7 @@ ${characters}
 【历史剧情摘要】
 ${history}
 
-${PROMPT_TEXT(summary,scene,beats)}
+${PROMPT_TEXT(c.summary,c.scene,c.beats)}
 `;
 
     const text = await callAI(prompt);
