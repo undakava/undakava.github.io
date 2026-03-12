@@ -46,12 +46,16 @@ function saveChapterSummaryDB(summary){
 
   const store = tx.objectStore("chapter_memory");
 
-  store.add({
-    time:Date.now(),
-    summary:summary
-  });
+  const req = store.add({
+  time:Date.now(),
+  summary:summary
+});
 
+req.onsuccess = function(){
   resolve();
+};
+
+req.onerror = reject;
 
  });
 
