@@ -832,11 +832,13 @@ ${PROMPT_TEXT(summary,scene,beats)}
    自动剧情摘要
 ================================= */
 
-var summaryPrompt = buildChapterSummaryPrompt(result);
+var summaryPrompt = buildChapterSummaryPrompt(text);
 
 var chapterSummary = await callAI(summaryPrompt);
 
-await saveChapterSummary(chapterSummary);
+if(chapterSummary){
+  await saveChapterSummary(chapterSummary);
+}
 
     save();
     draw();
