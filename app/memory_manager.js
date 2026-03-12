@@ -58,3 +58,10 @@ console.log("剧情摘要已加入缓存:", summary);
  }
 
 }
+
+async function saveCharacterMemory(characters){
+  localStorage.setItem(
+    "character_memory",
+    JSON.stringify(characters)
+  );
+}
