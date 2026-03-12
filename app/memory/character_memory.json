@@ -1,0 +1,20 @@
+{
+  "characters":[
+    {
+      "name":"林夜",
+      "role":"主角",
+      "personality":"冷静、果断、城府深",
+      "goal":"变强并复仇",
+      "abilities":"时间回溯",
+      "status":"实力逐渐增强"
+    },
+    {
+      "name":"苏清雪",
+      "role":"女主",
+      "personality":"聪慧、冷艳",
+      "goal":"寻找失踪的师父",
+      "abilities":"冰系灵术",
+      "status":"与主角关系逐渐加深"
+    }
+  ]
+}
