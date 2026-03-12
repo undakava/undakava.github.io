@@ -81,11 +81,11 @@ v.chapters.push({summary:"",scene:"",beats:"",text:""});
 
 return {
 desc:v.desc||"",
-characterArc:v.characterArc||"",
-startState:v.startState||"",
-goal:v.goal||"",
+
+
+
 events:v.events||"",
-endState:v.endState||"",
+
 chapterCount:v.chapterCount||"1",
 chapters:v.chapters
 };
@@ -396,40 +396,18 @@ html+=`
 oninput="updateVolumeField(${currentVolume},'desc',this.value)"
 >${v.desc||""}</textarea><br><br>
 
-主要人物弧光
-<textarea style="height:90px"
-oninput="updateVolumeField(${currentVolume},'characterArc',this.value)"
->${v.characterArc||""}</textarea><br><br>
 
-卷初状态
-<textarea style="height:70px"
-oninput="updateVolumeField(${currentVolume},'startState',this.value)"
->${v.startState||""}</textarea><br><br>
-
-<button onclick="genVolumeGoal(${currentVolume})">生成最终收获</button><br><br>
-
-本卷最终收获
-<textarea style="height:70px"
-oninput="updateVolumeField(${currentVolume},'goal',this.value)"
->${v.goal||""}</textarea><br><br>
 
 <hr>
 
-<button onclick="genVolumeEvents(${currentVolume})">生成事件节点</button><br><br>
+<button onclick="genVolumeEvents(${currentVolume})">生成大事件概述</button><br><br>
 
-事件节点
+大事件概述
 <textarea style="height:110px"
 oninput="updateVolumeField(${currentVolume},'events',this.value)"
 >${v.events||""}</textarea><br><br>
 
-<button onclick="genVolumeEndState(${currentVolume})">
-生成人物卷末状态
-</button><br><br>
 
-卷末状态结算
-<textarea style="height:70px"
-oninput="updateVolumeField(${currentVolume},'endState',this.value)"
->${v.endState||""}</textarea><br><br>
 
 <hr>
 
@@ -660,39 +638,7 @@ async function genAllVolumeDesc(){
 
 }
 
-async function genVolumeGoal(i){
 
-  try{
-
-    var v = data.volumes[i];
-
-    if(!v.desc || v.desc.trim()===""){
-      alert("请先生成卷简介。");
-      return;
-    }
-
-    var prompt =
-      "根据以下卷简介，提炼本卷在剧情层面的最终收获。\n\n" +
-      "【卷简介】\n" + v.desc + "\n\n" +
-      "请明确说明：\n" +
-      "1. 本卷最终在情节层面达成了什么结果\n" +
-      "2. 局势发生了什么阶段性变化\n" +
-      "3. 为下一卷留下什么基础\n";
-
-    const text = await callAI(prompt);
-
-    v.goal = text;
-
-    save();
-    draw();
-
-  }catch(err){
-
-    alert("AI调用失败: " + err.message);
-
-  }
-
-}
 
 async function genVolumeEvents(i){
 
@@ -705,17 +651,12 @@ async function genVolumeEvents(i){
       return;
     }
 
-    if(!v.goal || v.goal.trim()===""){
-      alert("请先生成本卷最终收获。");
-      return;
-    }
+
 
     var prompt =
       "根据以下信息，设计本卷的关键事件节点。\n\n" +
       "【卷简介】\n" + v.desc + "\n\n" +
-      "【本卷最终收获】\n" + v.goal + "\n\n" +
       "请按时间顺序列出本卷的主要事件节点，" +
-      "确保这些事件最终推动故事走向上述最终收获。\n";
 
     const text = await callAI(prompt);
 
@@ -732,63 +673,7 @@ async function genVolumeEvents(i){
 
 }
 
-async function genVolumeEndState(i){
 
-  try{
-
-    var v = data.volumes[i];
-
-    if(!v.events || v.events.trim()===""){
-      alert("请先生成事件节点。");
-      return;
-    }
-
-    if(!v.startState || v.startState.trim()===""){
-      alert("请填写卷初状态。");
-      return;
-    }
-
-    if(!v.characterArc || v.characterArc.trim()===""){
-      alert("请填写主要人物弧光。");
-      return;
-    }
-
-    var prompt =
-      "你正在进行人物结构推导。\n\n" +
-
-      "【卷简介】\n" + (v.desc||"") + "\n\n" +
-
-      "【卷初状态】\n" + v.startState + "\n\n" +
-
-      "【主要人物弧光】\n" + v.characterArc + "\n\n" +
-
-      "【事件节点】\n" + v.events + "\n\n" +
-
-      "任务：\n" +
-      "基于卷初状态，在人物弧光方向指引下，" +
-      "结合事件节点带来的冲击，" +
-      "推导主角在本卷结束时形成的新稳定状态。\n\n" +
-
-      "要求：\n" +
-      "1. 不复述剧情。\n" +
-      "2. 不总结事件。\n" +
-      "3. 只描述人物最终的心理、立场、能力或关系变化。\n" +
-      "4. 这是人物层结果，而不是剧情奖励。\n";
-
-    const text = await callAI(prompt);
-
-    v.endState = text;
-
-    save();
-    draw();
-
-  }catch(err){
-
-    alert("AI调用失败: " + err.message);
-
-  }
-
-}
 
 async function genChapterOutline(i){
 
