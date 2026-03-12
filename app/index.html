@@ -21,6 +21,8 @@
 </div>
 
 <script src="core.js"></script>
+<script src="prompts.js"></script>
+  
 <script>
 
 /* ===== 初始化 ===== */
@@ -506,8 +508,7 @@ function jump(s){stage=s;save();draw();}
 
 async function genIdea(){
 
-  var prompt = "根据以下创意概述，扩展成完整的小说设定与核心脑洞：\n\n" + (data.world || "");
-
+  var prompt = PROMPT_IDEA(data.world);
   try{
 
     const text = await callAI(prompt);
@@ -527,9 +528,7 @@ async function genIdea(){
 
 async function genOutline(){
 
-  var prompt =
-    "根据以下小说设定与脑洞，生成完整的全书结构大纲。\n\n" +
-    "【小说设定】\n" + (data.preset || "") + "\n\n";
+var prompt = PROMPT_OUTLINE(data.preset);
 
   try{
 
@@ -600,13 +599,7 @@ async function genAllVolumeDesc(){
       return;
     }
 
-    var prompt =
-      "根据以下全书大纲，将小说划分为 " + totalVolumes + " 卷。\n\n" +
-      "【全书大纲】\n" + (data.outline || "") + "\n\n" +
-      "请按以下格式依次输出每一卷简介：\n\n" +
-      "第1卷：\n（简介内容）\n\n" +
-      "第2卷：\n（简介内容）\n\n" +
-      "依次类推，不要省略。";
+var prompt = PROMPT_VOLUME_DESC(data.outline, totalVolumes);
 
     const text = await callAI(prompt);
 
@@ -650,10 +643,7 @@ async function genVolumeEvents(i){
 
 
 
-    var prompt =
-      "根据以下信息，设计本卷的关键事件节点。\n\n" +
-      "【卷简介】\n" + v.desc + "\n\n" +
-      "请按时间顺序列出本卷的主要事件节点。" ;
+var prompt = PROMPT_VOLUME_EVENTS(v.desc);
 
     const text = await callAI(prompt);
 
@@ -685,22 +675,7 @@ async function genChapterOutline(i){
 
     var chapterCount = Number(v.chapterCount) || 1;
 
-    var prompt =
-      "根据以下本卷事件节点，将内容拆分为 " + chapterCount + " 章。\n\n" +
-
-      "【本卷事件节点】\n" + v.events + "\n\n" +
-
-      "要求：\n" +
-      "1. 每一章写一个章节概述。\n" +
-      "2. 每章概述控制在400字以内。\n" +
-      "3. 按时间顺序拆分。\n" +
-      "4. 不要写正文。\n\n" +
-
-      "输出格式：\n" +
-      "第1章：\n（概述）\n\n" +
-      "第2章：\n（概述）\n\n" +
-      "依次类推。";
-
+var prompt = PROMPT_CHAPTER_OUTLINE(v.events, chapterCount);
     const text = await callAI(prompt);
 
     // 重新初始化章节数组
@@ -747,22 +722,7 @@ async function genScene(){
       return;
     }
 
-    var prompt =
-      "根据以下章节概述，将内容拆分为3-5个场景。\n\n" +
-
-      "【章节概述】\n" + c.summary + "\n\n" +
-
-      "每个场景请包含：\n" +
-      "1. 时间/地点\n" +
-      "2. 出场人物\n" +
-      "3. 场景目标\n" +
-      "4. 冲突核心\n" +
-      "5. 场景结果变化\n\n" +
-
-      "输出格式示例：\n" +
-      "场景1：\n（内容）\n\n" +
-      "场景2：\n（内容）\n\n" +
-      "依次类推。\n";
+var prompt = PROMPT_SCENE(c.summary);
 
     const text = await callAI(prompt);
 
@@ -790,23 +750,7 @@ async function genBeats(){
       return;
     }
 
-    var prompt =
-      "根据以下内容，为本章生成固定 6 个剧情节拍（不要多也不要少）。\n\n" +
-
-      "【章节概述】\n" + (c.summary||"") + "\n\n" +
-
-      "【场景拆分】\n" + c.scene + "\n\n" +
-
-      "要求：\n" +
-      "1. 必须严格输出 6 个节拍。\n" +
-      "2. 每个节拍包含：行动、冲突或信息变化。\n" +
-      "3. 每个节拍必须产生推进或转折。\n" +
-      "4. 不要写正文，不要扩写描写。\n\n" +
-
-      "输出格式示例：\n" +
-      "Beat1：\n（内容）\n\n" +
-      "Beat2：\n（内容）\n\n" +
-      "依次到 Beat6。\n";
+var prompt = PROMPT_BEATS(c.summary, c.scene);
 
     const text = await callAI(prompt);
 
@@ -848,23 +792,7 @@ async function genTextReal(){
       return;
     }
 
-    var prompt =
-      "请根据以下信息创作本章小说正文，字数控制在2200字左右。\n\n" +
-
-      "【章节概述】\n" + (c.summary||"") + "\n\n" +
-
-      "【场景拆分】\n" + (c.scene||"") + "\n\n" +
-
-      "【剧情节拍（必须严格按照6个节拍顺序推进）】\n" +
-      c.beats + "\n\n" +
-
-      "写作要求：\n" +
-      "1. 严格按照6个节拍顺序展开，不可跳跃。\n" +
-      "2. 每个节拍必须体现在正文推进中。\n" +
-      "3. 不要总结剧情，不要写说明性语言。\n" +
-      "4. 使用小说叙事方式，自然衔接场景。\n" +
-      "5. 结尾必须形成情绪或局势变化。\n" +
-      "6. 不要输出标题，不要写“Beat1”等字样。\n";
+var prompt = PROMPT_TEXT(c.summary, c.scene, c.beats);
 
     const text = await callAI(prompt);
 
