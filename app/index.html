@@ -570,17 +570,10 @@ save();draw();
 function addVolume(){
 data.volumes.push({
 desc:"",
-characterArc:"",
-startState:"",
-goal:"",
 events:"",
-endState:"",
 chapterCount:1,
 chapters:[{summary:"",scene:"",beats:"",text:""}]
 });
-currentVolume=data.volumes.length-1;
-save();draw();
-}
 
 function removeVolume(){
 if(data.volumes.length>0){
@@ -656,7 +649,7 @@ async function genVolumeEvents(i){
     var prompt =
       "根据以下信息，设计本卷的关键事件节点。\n\n" +
       "【卷简介】\n" + v.desc + "\n\n" +
-      "请按时间顺序列出本卷的主要事件节点，" +
+      "请按时间顺序列出本卷的主要事件节点。" ；
 
     const text = await callAI(prompt);
 
