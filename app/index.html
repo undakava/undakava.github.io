@@ -798,7 +798,7 @@ async function genTextReal(){
 
 var characters = await loadCharacterMemory();
 var world = await loadWorldMemory();
-var history = await loadStoryMemory();
+var history = await loadRecentSummaries(20);
 
 /* ===============================
    剧情一致性检查
