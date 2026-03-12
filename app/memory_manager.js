@@ -40,11 +40,16 @@ async function saveChapterSummary(summary){
   const json = await res.json();
 
   json.chapters.push({
-    chapter: Date.now(),
-    summary: summary
-  });
+  chapter: Date.now(),
+  summary: summary
+});
 
-  console.log("剧情摘要已加入缓存:", summary);
+/* 只保留最近20章剧情摘要 */
+if(json.chapters.length > 20){
+  json.chapters.shift();
+}
+
+console.log("剧情摘要已加入缓存:", summary);
 
  }catch(e){
 
