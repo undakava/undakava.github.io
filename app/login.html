@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>请输入密码</title>
+<title>password please</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;}
 
@@ -80,7 +80,7 @@ body{
   <input
     type="password"
     id="pwd"
-    placeholder="请输入密码"
+    placeholder="萬里長城今猶在"
     onkeydown="if(event.key==='Enter') verify()"
     autofocus
   >
@@ -97,7 +97,7 @@ function verify(){
     sessionStorage.setItem("auth","1");
     window.location.href = "projects.html";
   }else{
-    document.getElementById("err").innerText = "密码错误，请重试";
+    document.getElementById("err").innerText = "password错误，请重试";
     document.getElementById("pwd").value = "";
     document.getElementById("pwd").focus();
   }
