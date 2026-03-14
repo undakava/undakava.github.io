@@ -133,41 +133,41 @@ function lockCurrentPosition(){
 
 
 /* ===========================
-   读取角色记忆
-   =========================== */
+   读取角色记忆（当前项目）
+=========================== */
 
 async function loadCharacterMemory(){
 
- const res = await fetch("memory/character_memory.json");
- const data = await res.json();
+  if(!data || !data.characters) return "";
 
- return JSON.stringify(data);
+  return JSON.stringify(data.characters);
+
 }
 
 
-
 /* ===========================
-   读取世界观
-   =========================== */
+   读取世界观（当前项目）
+=========================== */
 
 async function loadWorldMemory(){
 
- const res = await fetch("memory/world_memory.json");
- const data = await res.json();
+  if(!data || !data.world) return "";
 
- return JSON.stringify(data);
+  return data.world;
+
 }
 
 
-
 /* ===========================
-   读取剧情摘要
-   =========================== */
+   读取剧情摘要（当前项目）
+=========================== */
 
 async function loadStoryMemory(){
 
- const res = await fetch("memory/chapter_summary_cache.json");
- const data = await res.json();
+  const history = await loadRecentSummaries(20);
 
- return JSON.stringify(data);
+  if(!history) return "";
+
+  return history;
+
 }
