@@ -47,8 +47,9 @@ function saveChapterSummaryDB(summary){
   const store = tx.objectStore("chapter_memory");
 
   const req = store.add({
-  time:Date.now(),
-  summary:summary
+  pid: CURRENT_PROJECT_ID,
+  time: Date.now(),
+  summary: summary
 });
 
 req.onsuccess = function(){
