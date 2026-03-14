@@ -843,7 +843,7 @@ var summaryPrompt = buildChapterSummaryPrompt(text);
 
 var chapterSummary = await callAI(summaryPrompt);
 
-if(chapterSummary){
+if(chapterSummary && chapterSummary.trim()){
   await saveChapterSummaryDB(chapterSummary);
 }
 
