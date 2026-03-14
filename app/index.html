@@ -928,6 +928,16 @@ async function startApp(){
 
 startApp();
 
+function clearStorage(){
+
+  if(!confirm("确定清空所有本地数据？")) return;
+
+  localStorage.clear();
+  indexedDB.deleteDatabase("AI_NOVEL_DB");
+
+  location.reload();
+}
+
 </script>
 
 <!-- AI确认弹窗 -->
