@@ -33,6 +33,8 @@ initStoryDB();
 
 /* ===== 初始化 ===== */
 
+var CURRENT_PROJECT_ID = new URLSearchParams(location.search).get("pid");
+
 var stage = localStorage.getItem("stage") || "preset";
 var currentCharacter = Number(localStorage.getItem("currentCharacter")) || 0;
 var currentVolume = Number(localStorage.getItem("currentVolume")) || 0;
