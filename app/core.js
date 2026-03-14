@@ -171,3 +171,28 @@ async function loadStoryMemory(){
   return history;
 
 }
+
+/* ==== 生成章节摘要Prompt ==== */
+
+function buildChapterSummaryPrompt(chapterText){
+
+return `
+请将以下小说章节总结为100字以内的剧情摘要。
+
+要求：
+
+1 只保留关键剧情
+2 不要细节描写
+3 不要评价
+4 不要使用文学语言
+
+输出示例：
+
+主角进入青云宗，参加入门测试，凭借时间回溯能力通过考核，被长老注意。
+
+【章节正文】
+
+${chapterText}
+`;
+
+}
