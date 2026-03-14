@@ -78,9 +78,11 @@ function loadRecentSummaries(limit=20){
 
    const list = req.result || [];
 
-   const last = list.slice(-limit);
+const filtered = list.filter(v => v.pid === CURRENT_PROJECT_ID);
 
-   const text = last.map(v=>v.summary).join("\n");
+const last = filtered.slice(-limit);
+
+const text = last.map(v=>v.summary).join("\n");
 
    resolve(text);
 
